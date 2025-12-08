@@ -18,6 +18,23 @@ except ImportError:
     sys.exit(1)
 
 
+# Common BIM object types to count
+OBJECT_TYPES = [
+    "IfcWall",
+    "IfcWallStandardCase",
+    "IfcDoor",
+    "IfcWindow",
+    "IfcSlab",
+    "IfcBeam",
+    "IfcColumn",
+    "IfcStair",
+    "IfcRoof",
+    "IfcSpace",
+    "IfcFurnishingElement",
+    "IfcBuildingElementProxy",
+]
+
+
 def find_ifc_files():
     """Find all IFC files in the current directory."""
     ifc_files = glob.glob("*.ifc") + glob.glob("*.IFC")
@@ -50,24 +67,16 @@ def analyze_ifc_file(file_path):
         projects = ifc_file.by_type("IfcProject")
         if projects:
             project = projects[0]
-            print(f"  Project Name: {project.Name if hasattr(project, 'Name') else 'N/A'}")
-            print(f"  Description: {project.Description if hasattr(project, 'Description') and project.Description else 'N/A'}")
-        
-        # Define common BIM object types to count
-        object_types = [
-            "IfcWall",
-            "IfcWallStandardCase",
-            "IfcDoor",
-            "IfcWindow",
-            "IfcSlab",
-            "IfcBeam",
-            "IfcColumn",
-            "IfcStair",
-            "IfcRoof",
-            "IfcSpace",
-            "IfcFurnishingElement",
-            "IfcBuildingElementProxy",
-        ]
+            try:
+                project_name = project.Name or 'N/A'
+            except (AttributeError, TypeError):
+                project_name = 'N/A'
+            try:
+                project_desc = project.Description or 'N/A'
+            except (AttributeError, TypeError):
+                project_desc = 'N/A'
+            print(f"  Project Name: {project_name}")
+            print(f"  Description: {project_desc}")
         
         print(f"\n{'='*60}")
         print("Object Count Summary:")
@@ -76,7 +85,7 @@ def analyze_ifc_file(file_path):
         results = {}
         total_count = 0
         
-        for obj_type in object_types:
+        for obj_type in OBJECT_TYPES:
             elements = ifc_file.by_type(obj_type)
             count = len(elements)
             if count > 0:
