@@ -21,6 +21,11 @@ A Python script that uses the ifcopenshell API to read and analyze IFC (Industry
   - **Furnishing & Equipment**: Furniture, medical devices, audio/visual equipment, etc.
   - **Transport**: Transport elements
   - **And more categories...**
+- **Floor/Storey-based organization** - Shows products sorted by building floor:
+  - Displays products for each floor (Basement, Ground Floor, First Floor, etc.)
+  - Sorted by elevation from lowest to highest
+  - Shows elevation values for each floor
+  - Includes total counts per floor and grand total
 - **Displays project information** and IFC schema version
 - **Sorted by count** within each category for easy analysis
 
@@ -108,6 +113,43 @@ Structural Elements (125 items):
 
 ============================================================
 Total Products Across All Categories: 4500
+============================================================
+
+============================================================
+Products by Floor/Storey:
+============================================================
+
+Basement (Elevation: -3.50m) - 234 items:
+------------------------------------------------------------
+  IfcWall                                 :    89
+  IfcColumn                               :    45
+  IfcPipeSegment                          :    45
+  IfcSlab                                 :    25
+  IfcPump                                 :    18
+  IfcSpace                                :    12
+
+Ground Floor (Elevation: 0.00m) - 1245 items:
+------------------------------------------------------------
+  IfcWall                                 :   345
+  IfcFurniture                            :   234
+  IfcLightFixture                         :   123
+  IfcWindow                               :    89
+  IfcColumn                               :    78
+  IfcDoor                                 :    67
+  ... (more products) ...
+
+First Floor (Elevation: 3.50m) - 1523 items:
+------------------------------------------------------------
+  IfcWall                                 :   456
+  IfcFurniture                            :   312
+  IfcLightFixture                         :   145
+  IfcWindow                               :   112
+  ... (more products) ...
+
+... (more floors) ...
+
+============================================================
+Total Products Across All Floors: 4500
 ============================================================
 ```
 
