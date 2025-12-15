@@ -20,19 +20,32 @@ except ImportError:
 
 # Common BIM object types to count (for quick summary section)
 # Note: Some types also appear in PRODUCT_CATEGORIES below for comprehensive listing
+# Common BIM object types to count
 OBJECT_TYPES = [
     "IfcWall",
+    # Vertical building element used to divide or enclose spaces (structural or non-structural)
     "IfcWallStandardCase",
+    # Simplified wall with standard geometry (extruded profile); preferred for analysis and exchange
     "IfcDoor",
+    # Opening element that allows access through a wall or partition
     "IfcWindow",
+    # Opening element that provides light and/or ventilation through a wall or roof
     "IfcSlab",
+    # Horizontal (or near-horizontal) element such as floors, ceilings, or flat roofs
     "IfcBeam",
+    # Horizontal or inclined structural element that carries loads
     "IfcColumn",
+    # Vertical structural element that transfers loads to foundations
     "IfcStair",
+    # Element providing vertical circulation between building levels
     "IfcRoof",
+    # Building element that covers the top of a structure
     "IfcSpace",
+    # Volumetric area representing a room or usable space (air volume, not a physical element)
     "IfcFurnishingElement",
+    # Movable or fixed furniture such as desks, cabinets, or seating
     "IfcBuildingElementProxy",
+    # Generic fallback element used when no specific IFC class is defined or mapped
 ]
 
 # Product type categories for better organization
