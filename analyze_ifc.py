@@ -34,6 +34,66 @@ OBJECT_TYPES = [
     "IfcBuildingElementProxy",
 ]
 
+# Product type categories for better organization
+PRODUCT_CATEGORIES = {
+    "Structural Elements": [
+        "IfcWall", "IfcWallStandardCase", "IfcBeam", "IfcColumn", "IfcSlab",
+        "IfcFooting", "IfcPile", "IfcRailing", "IfcRamp", "IfcRampFlight",
+        "IfcRoof", "IfcStair", "IfcStairFlight", "IfcPlate", "IfcMember",
+        "IfcCovering", "IfcCurtainWall"
+    ],
+    "Openings": [
+        "IfcDoor", "IfcWindow", "IfcOpeningElement"
+    ],
+    "MEP & HVAC": [
+        "IfcAirTerminal", "IfcAirTerminalBox", "IfcDamper", "IfcDuctFitting",
+        "IfcDuctSegment", "IfcDuctSilencer", "IfcFan", "IfcFilter",
+        "IfcFlowController", "IfcFlowFitting", "IfcFlowMeter", "IfcFlowMovingDevice",
+        "IfcFlowSegment", "IfcFlowStorageDevice", "IfcFlowTerminal",
+        "IfcFlowTreatmentDevice", "IfcPipeFitting", "IfcPipeSegment",
+        "IfcPump", "IfcTank", "IfcValve", "IfcBoiler", "IfcChiller",
+        "IfcCoil", "IfcCondenser", "IfcCooledBeam", "IfcCoolingTower",
+        "IfcEvaporativeCooler", "IfcEvaporator", "IfcHeatExchanger",
+        "IfcHumidifier", "IfcTubeBundle", "IfcUnitaryEquipment",
+        "IfcSpaceHeater", "IfcAirToAirHeatRecovery"
+    ],
+    "Electrical & Lighting": [
+        "IfcLamp", "IfcLightFixture", "IfcElectricAppliance", "IfcElectricDistributionBoard",
+        "IfcElectricFlowStorageDevice", "IfcElectricGenerator", "IfcElectricMotor",
+        "IfcElectricTimeControl", "IfcCableCarrierFitting", "IfcCableCarrierSegment",
+        "IfcCableFitting", "IfcCableSegment", "IfcJunctionBox", "IfcMotorConnection",
+        "IfcOutlet", "IfcSwitchingDevice", "IfcTransformer", "IfcProtectiveDevice"
+    ],
+    "Plumbing & Sanitary": [
+        "IfcSanitaryTerminal", "IfcWasteTerminal", "IfcFireSuppressionTerminal",
+        "IfcStackTerminal", "IfcInterceptor"
+    ],
+    "Sensors & Controls": [
+        "IfcSensor", "IfcActuator", "IfcAlarm", "IfcController", "IfcUnitaryControlElement",
+        "IfcProtectiveDeviceTrippingUnit", "IfcFlowInstrument"
+    ],
+    "Furnishing & Equipment": [
+        "IfcFurniture", "IfcFurnishingElement", "IfcSystemFurnitureElement",
+        "IfcMedicalDevice", "IfcAudioVisualAppliance", "IfcCommunicationsAppliance"
+    ],
+    "Transport": [
+        "IfcTransportElement"
+    ],
+    "Distribution": [
+        "IfcDistributionElement", "IfcDistributionControlElement", "IfcDistributionFlowElement",
+        "IfcDistributionChamberElement", "IfcEnergyConversionDevice"
+    ],
+    "Building Services": [
+        "IfcBuildingElementProxy", "IfcBuildingElementPart", "IfcDiscreteAccessory",
+        "IfcFastener", "IfcMechanicalFastener", "IfcReinforcingBar", "IfcReinforcingMesh",
+        "IfcTendon", "IfcTendonAnchor"
+    ],
+    "Spaces & Zones": [
+        "IfcSpace", "IfcZone"
+    ],
+    "Other Products": []  # Catch-all for uncategorized products
+}
+
 
 def find_ifc_files():
     """Find all IFC files in the current directory only."""
@@ -54,6 +114,84 @@ def find_ifc_files():
     ifc_files.sort()
     
     return ifc_files, current_dir
+
+
+def get_all_product_types(ifc_file):
+    """
+    Get all unique product types in the IFC file.
+    
+    Args:
+        ifc_file: Opened IFC file object
+        
+    Returns:
+        Dictionary mapping product type names to counts
+    """
+    all_products = ifc_file.by_type("IfcProduct")
+    product_counts = {}
+    
+    for product in all_products:
+        product_type = product.is_a()
+        product_counts[product_type] = product_counts.get(product_type, 0) + 1
+    
+    return product_counts
+
+
+def categorize_products(product_counts):
+    """
+    Organize product types into meaningful categories.
+    
+    Args:
+        product_counts: Dictionary of product type names to counts
+        
+    Returns:
+        Dictionary mapping category names to lists of (type, count) tuples
+    """
+    categorized = {category: [] for category in PRODUCT_CATEGORIES.keys()}
+    
+    # Create a reverse mapping for quick lookup
+    type_to_category = {}
+    for category, types in PRODUCT_CATEGORIES.items():
+        for ptype in types:
+            type_to_category[ptype] = category
+    
+    # Categorize each product type
+    for product_type, count in sorted(product_counts.items()):
+        category = type_to_category.get(product_type, "Other Products")
+        categorized[category].append((product_type, count))
+    
+    # Remove empty categories
+    categorized = {k: v for k, v in categorized.items() if v}
+    
+    return categorized
+
+
+def display_categorized_products(categorized_products):
+    """
+    Display products organized by category.
+    
+    Args:
+        categorized_products: Dictionary from categorize_products()
+    """
+    print(f"\n{'='*60}")
+    print("All Products by Category:")
+    print(f"{'='*60}\n")
+    
+    total_products = 0
+    
+    for category in sorted(categorized_products.keys()):
+        products = categorized_products[category]
+        category_total = sum(count for _, count in products)
+        total_products += category_total
+        
+        print(f"\n{category} ({category_total} items):")
+        print("-" * 60)
+        
+        for product_type, count in sorted(products, key=lambda x: x[1], reverse=True):
+            print(f"  {product_type:40s}: {count:5d}")
+    
+    print(f"\n{'='*60}")
+    print(f"Total Products Across All Categories: {total_products}")
+    print(f"{'='*60}\n")
 
 
 def analyze_ifc_file(file_path):
@@ -119,6 +257,11 @@ def analyze_ifc_file(file_path):
         print(f"\n{'='*60}")
         print(f"Total Specific Objects Counted: {total_count}")
         print(f"{'='*60}\n")
+        
+        # Get and display all product types categorized
+        product_counts = get_all_product_types(ifc_file)
+        categorized = categorize_products(product_counts)
+        display_categorized_products(categorized)
         
         return results
         
