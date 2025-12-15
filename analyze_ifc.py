@@ -130,6 +130,148 @@ def find_ifc_files():
     return ifc_files, current_dir
 
 
+def get_product_storey(product):
+    """
+    Get the building storey (floor) that contains a product.
+    
+    Args:
+        product: IFC product element
+        
+    Returns:
+        Storey name or 'Unassigned' if not found
+    """
+    try:
+        # Try to get the container through IfcRelContainedInSpatialStructure
+        if hasattr(product, 'ContainedInStructure') and product.ContainedInStructure:
+            for rel in product.ContainedInStructure:
+                if hasattr(rel, 'RelatingStructure'):
+                    structure = rel.RelatingStructure
+                    # Check if it's directly in a storey
+                    if structure.is_a("IfcBuildingStorey"):
+                        return structure.Name or structure.LongName or f"Storey #{structure.id()}"
+                    # Check if it's in a space within a storey
+                    elif structure.is_a("IfcSpace"):
+                        if hasattr(structure, 'Decomposes') and structure.Decomposes:
+                            for space_rel in structure.Decomposes:
+                                if hasattr(space_rel, 'RelatingObject'):
+                                    parent = space_rel.RelatingObject
+                                    if parent.is_a("IfcBuildingStorey"):
+                                        return parent.Name or parent.LongName or f"Storey #{parent.id()}"
+        
+        # Alternative: check through spatial decomposition
+        if hasattr(product, 'Decomposes') and product.Decomposes:
+            for rel in product.Decomposes:
+                if hasattr(rel, 'RelatingObject'):
+                    parent = rel.RelatingObject
+                    if parent.is_a("IfcBuildingStorey"):
+                        return parent.Name or parent.LongName or f"Storey #{parent.id()}"
+    except Exception:
+        pass
+    
+    return "Unassigned"
+
+
+def get_all_storeys(ifc_file):
+    """
+    Get all building storeys in the IFC file.
+    
+    Args:
+        ifc_file: Opened IFC file object
+        
+    Returns:
+        List of tuples (storey_name, elevation) sorted by elevation
+    """
+    storeys = []
+    for storey in ifc_file.by_type("IfcBuildingStorey"):
+        storey_name = storey.Name or storey.LongName or f"Storey #{storey.id()}"
+        elevation = storey.Elevation if hasattr(storey, 'Elevation') and storey.Elevation else 0.0
+        storeys.append((storey_name, elevation))
+    
+    # Sort by elevation (lowest to highest)
+    storeys.sort(key=lambda x: x[1])
+    
+    return storeys
+
+
+def get_products_by_storey(ifc_file):
+    """
+    Organize all products by building storey (floor).
+    
+    Args:
+        ifc_file: Opened IFC file object
+        
+    Returns:
+        Dictionary mapping storey names to product type counts
+    """
+    storey_products = {}
+    all_products = ifc_file.by_type("IfcProduct")
+    
+    for product in all_products:
+        storey_name = get_product_storey(product)
+        product_type = product.is_a()
+        
+        if storey_name not in storey_products:
+            storey_products[storey_name] = {}
+        
+        if product_type not in storey_products[storey_name]:
+            storey_products[storey_name][product_type] = 0
+        
+        storey_products[storey_name][product_type] += 1
+    
+    return storey_products
+
+
+def display_products_by_storey(ifc_file, storey_products):
+    """
+    Display products organized by building storey (floor).
+    
+    Args:
+        ifc_file: Opened IFC file object
+        storey_products: Dictionary from get_products_by_storey()
+    """
+    print(f"\n{'='*60}")
+    print("Products by Floor/Storey:")
+    print(f"{'='*60}\n")
+    
+    # Get all storeys sorted by elevation
+    all_storeys = get_all_storeys(ifc_file)
+    storey_names = [name for name, _ in all_storeys]
+    
+    # Add "Unassigned" at the end if it exists
+    if "Unassigned" in storey_products and "Unassigned" not in storey_names:
+        storey_names.append("Unassigned")
+    
+    grand_total = 0
+    
+    for storey_name in storey_names:
+        if storey_name not in storey_products:
+            continue
+            
+        products = storey_products[storey_name]
+        storey_total = sum(products.values())
+        grand_total += storey_total
+        
+        # Get elevation info for display
+        elevation_info = ""
+        for name, elev in all_storeys:
+            if name == storey_name:
+                elevation_info = f" (Elevation: {elev:.2f}m)" if elev != 0.0 else ""
+                break
+        
+        print(f"\n{storey_name}{elevation_info} - {storey_total} items:")
+        print("-" * 60)
+        
+        # Sort products by count (highest first)
+        sorted_products = sorted(products.items(), key=lambda x: x[1], reverse=True)
+        
+        for product_type, count in sorted_products:
+            print(f"  {product_type:40s}: {count:5d}")
+    
+    print(f"\n{'='*60}")
+    print(f"Total Products Across All Floors: {grand_total}")
+    print(f"{'='*60}\n")
+
+
 def get_all_product_types(ifc_file):
     """
     Get all unique product types in the IFC file.
@@ -276,6 +418,10 @@ def analyze_ifc_file(file_path):
         product_counts = get_all_product_types(ifc_file)
         categorized = categorize_products(product_counts)
         display_categorized_products(categorized)
+        
+        # Get and display products organized by floor/storey
+        storey_products = get_products_by_storey(ifc_file)
+        display_products_by_storey(ifc_file, storey_products)
         
         return results
         
