@@ -130,6 +130,48 @@ def find_ifc_files():
     return ifc_files, current_dir
 
 
+def _get_storey_name(storey):
+    """
+    Get a displayable name for a storey.
+    
+    Args:
+        storey: IFC Building Storey element
+        
+    Returns:
+        Storey name string
+    """
+    return storey.Name or storey.LongName or f"Storey #{storey.id()}"
+
+
+def _find_storey_from_space(space):
+    """
+    Find the parent storey of a space by traversing spatial relationships.
+    
+    Args:
+        space: IFC Space element
+        
+    Returns:
+        Storey name or None if not found
+    """
+    # Try containment relationships
+    if hasattr(space, 'ContainedInStructure') and space.ContainedInStructure:
+        for space_rel in space.ContainedInStructure:
+            if hasattr(space_rel, 'RelatingStructure'):
+                parent = space_rel.RelatingStructure
+                if parent.is_a("IfcBuildingStorey"):
+                    return _get_storey_name(parent)
+    
+    # Try spatial decomposition
+    if hasattr(space, 'Decomposes') and space.Decomposes:
+        for space_rel in space.Decomposes:
+            if hasattr(space_rel, 'RelatingObject'):
+                parent = space_rel.RelatingObject
+                if parent.is_a("IfcBuildingStorey"):
+                    return _get_storey_name(parent)
+    
+    return None
+
+
 def get_product_storey(product):
     """
     Get the building storey (floor) that contains a product.
@@ -148,23 +190,12 @@ def get_product_storey(product):
                     structure = rel.RelatingStructure
                     # Check if it's directly in a storey
                     if structure.is_a("IfcBuildingStorey"):
-                        return structure.Name or structure.LongName or f"Storey #{structure.id()}"
+                        return _get_storey_name(structure)
                     # Check if it's in a space - traverse up to find the storey
                     elif structure.is_a("IfcSpace"):
-                        # Spaces are aggregated by storeys, check the space's container
-                        if hasattr(structure, 'ContainedInStructure') and structure.ContainedInStructure:
-                            for space_rel in structure.ContainedInStructure:
-                                if hasattr(space_rel, 'RelatingStructure'):
-                                    parent = space_rel.RelatingStructure
-                                    if parent.is_a("IfcBuildingStorey"):
-                                        return parent.Name or parent.LongName or f"Storey #{parent.id()}"
-                        # Try spatial decomposition for the space itself
-                        if hasattr(structure, 'Decomposes') and structure.Decomposes:
-                            for space_rel in structure.Decomposes:
-                                if hasattr(space_rel, 'RelatingObject'):
-                                    parent = space_rel.RelatingObject
-                                    if parent.is_a("IfcBuildingStorey"):
-                                        return parent.Name or parent.LongName or f"Storey #{parent.id()}"
+                        storey_name = _find_storey_from_space(structure)
+                        if storey_name:
+                            return storey_name
         
         # Method 2: Check through IfcRelReferencedInSpatialStructure
         # This is often used for distribution elements (MEP, outlets, etc.)
@@ -174,23 +205,12 @@ def get_product_storey(product):
                     structure = rel.RelatingStructure
                     # Check if it's directly referenced in a storey
                     if structure.is_a("IfcBuildingStorey"):
-                        return structure.Name or structure.LongName or f"Storey #{structure.id()}"
+                        return _get_storey_name(structure)
                     # Check if it's referenced in a space
                     elif structure.is_a("IfcSpace"):
-                        # Try to find the storey that contains this space
-                        if hasattr(structure, 'ContainedInStructure') and structure.ContainedInStructure:
-                            for space_rel in structure.ContainedInStructure:
-                                if hasattr(space_rel, 'RelatingStructure'):
-                                    parent = space_rel.RelatingStructure
-                                    if parent.is_a("IfcBuildingStorey"):
-                                        return parent.Name or parent.LongName or f"Storey #{parent.id()}"
-                        # Try spatial decomposition for the space
-                        if hasattr(structure, 'Decomposes') and structure.Decomposes:
-                            for space_rel in structure.Decomposes:
-                                if hasattr(space_rel, 'RelatingObject'):
-                                    parent = space_rel.RelatingObject
-                                    if parent.is_a("IfcBuildingStorey"):
-                                        return parent.Name or parent.LongName or f"Storey #{parent.id()}"
+                        storey_name = _find_storey_from_space(structure)
+                        if storey_name:
+                            return storey_name
         
         # Method 3: Check through spatial decomposition (IfcRelAggregates)
         # Products may be part of an aggregate where the parent is a storey
@@ -200,23 +220,12 @@ def get_product_storey(product):
                     parent = rel.RelatingObject
                     # Direct decomposition by storey
                     if parent.is_a("IfcBuildingStorey"):
-                        return parent.Name or parent.LongName or f"Storey #{parent.id()}"
+                        return _get_storey_name(parent)
                     # Check if decomposed by a space
                     elif parent.is_a("IfcSpace"):
-                        # Try to find the storey that contains this space
-                        if hasattr(parent, 'ContainedInStructure') and parent.ContainedInStructure:
-                            for space_rel in parent.ContainedInStructure:
-                                if hasattr(space_rel, 'RelatingStructure'):
-                                    grandparent = space_rel.RelatingStructure
-                                    if grandparent.is_a("IfcBuildingStorey"):
-                                        return grandparent.Name or grandparent.LongName or f"Storey #{grandparent.id()}"
-                        # Try spatial decomposition for the parent space
-                        if hasattr(parent, 'Decomposes') and parent.Decomposes:
-                            for space_rel in parent.Decomposes:
-                                if hasattr(space_rel, 'RelatingObject'):
-                                    grandparent = space_rel.RelatingObject
-                                    if grandparent.is_a("IfcBuildingStorey"):
-                                        return grandparent.Name or grandparent.LongName or f"Storey #{grandparent.id()}"
+                        storey_name = _find_storey_from_space(parent)
+                        if storey_name:
+                            return storey_name
     except Exception:
         pass
     
@@ -235,7 +244,7 @@ def get_all_storeys(ifc_file):
     """
     storeys = []
     for storey in ifc_file.by_type("IfcBuildingStorey"):
-        storey_name = storey.Name or storey.LongName or f"Storey #{storey.id()}"
+        storey_name = _get_storey_name(storey)
         # Get elevation, use None if not available (not 0.0 as that's a valid ground floor elevation)
         elevation = storey.Elevation if hasattr(storey, 'Elevation') and storey.Elevation is not None else None
         storeys.append((storey_name, elevation))
