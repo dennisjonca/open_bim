@@ -183,7 +183,8 @@ def get_unassigned_products(db_path='ifc_data.db'):
     session = get_session(db_path)
     
     try:
-        # Use is_(None) for proper NULL comparison in SQLAlchemy
+        # Use is_(None) instead of == None for proper NULL comparison in SQLAlchemy.
+        # This generates correct SQL "IS NULL" instead of "= NULL" which doesn't work.
         results = session.query(
             Product.ifc_type,
             func.count(Product.id).label('count')
