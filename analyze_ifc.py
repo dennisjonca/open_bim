@@ -36,8 +36,22 @@ OBJECT_TYPES = [
 
 
 def find_ifc_files():
-    """Find all IFC files in the current directory."""
-    ifc_files = glob.glob("*.ifc") + glob.glob("*.IFC")
+    """Find all IFC files in the current directory only."""
+    # Get current working directory
+    current_dir = os.getcwd()
+    
+    # Find IFC files in current directory only (not recursive)
+    ifc_files = []
+    for pattern in ["*.ifc", "*.IFC"]:
+        found_files = glob.glob(os.path.join(current_dir, pattern))
+        ifc_files.extend(found_files)
+    
+    # Remove duplicates (in case of case-insensitive filesystem)
+    ifc_files = list(set(ifc_files))
+    
+    # Sort for consistent output
+    ifc_files.sort()
+    
     return ifc_files
 
 
@@ -127,7 +141,8 @@ def main():
         print("\nSupported file extensions: .ifc, .IFC")
         return 1
     
-    print(f"\nFound {len(ifc_files)} IFC file(s):")
+    print(f"\nFound {len(ifc_files)} IFC file(s) in current directory:")
+    print(f"Current directory: {os.getcwd()}\n")
     for i, file in enumerate(ifc_files, 1):
         print(f"  {i}. {file}")
     
