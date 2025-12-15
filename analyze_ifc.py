@@ -130,6 +130,48 @@ def find_ifc_files():
     return ifc_files, current_dir
 
 
+def _get_storey_name(storey):
+    """
+    Get a displayable name for a storey.
+    
+    Args:
+        storey: IfcBuildingStorey element
+        
+    Returns:
+        str: Storey name string
+    """
+    return storey.Name or storey.LongName or f"Storey #{storey.id()}"
+
+
+def _find_storey_from_space(space):
+    """
+    Find the parent storey of a space by traversing spatial relationships.
+    
+    Args:
+        space: IfcSpace element
+        
+    Returns:
+        str or None: Storey name string if found, None otherwise
+    """
+    # Try containment relationships
+    if hasattr(space, 'ContainedInStructure') and space.ContainedInStructure:
+        for space_rel in space.ContainedInStructure:
+            if hasattr(space_rel, 'RelatingStructure'):
+                parent = space_rel.RelatingStructure
+                if parent.is_a("IfcBuildingStorey"):
+                    return _get_storey_name(parent)
+    
+    # Try spatial decomposition
+    if hasattr(space, 'Decomposes') and space.Decomposes:
+        for space_rel in space.Decomposes:
+            if hasattr(space_rel, 'RelatingObject'):
+                parent = space_rel.RelatingObject
+                if parent.is_a("IfcBuildingStorey"):
+                    return _get_storey_name(parent)
+    
+    return None
+
+
 def get_product_storey(product):
     """
     Get the building storey (floor) that contains a product.
@@ -148,18 +190,29 @@ def get_product_storey(product):
                     structure = rel.RelatingStructure
                     # Check if it's directly in a storey
                     if structure.is_a("IfcBuildingStorey"):
-                        return structure.Name or structure.LongName or f"Storey #{structure.id()}"
+                        return _get_storey_name(structure)
                     # Check if it's in a space - traverse up to find the storey
                     elif structure.is_a("IfcSpace"):
-                        # Spaces are aggregated by storeys, check the space's container
-                        if hasattr(structure, 'ContainedInStructure') and structure.ContainedInStructure:
-                            for space_rel in structure.ContainedInStructure:
-                                if hasattr(space_rel, 'RelatingStructure'):
-                                    parent = space_rel.RelatingStructure
-                                    if parent.is_a("IfcBuildingStorey"):
-                                        return parent.Name or parent.LongName or f"Storey #{parent.id()}"
+                        storey_name = _find_storey_from_space(structure)
+                        if storey_name:
+                            return storey_name
         
-        # Method 2: Check through spatial decomposition (IfcRelAggregates)
+        # Method 2: Check through IfcRelReferencedInSpatialStructure
+        # This is often used for distribution elements (MEP, outlets, etc.)
+        if hasattr(product, 'ReferencedInStructures') and product.ReferencedInStructures:
+            for rel in product.ReferencedInStructures:
+                if hasattr(rel, 'RelatingStructure'):
+                    structure = rel.RelatingStructure
+                    # Check if it's directly referenced in a storey
+                    if structure.is_a("IfcBuildingStorey"):
+                        return _get_storey_name(structure)
+                    # Check if it's referenced in a space
+                    elif structure.is_a("IfcSpace"):
+                        storey_name = _find_storey_from_space(structure)
+                        if storey_name:
+                            return storey_name
+        
+        # Method 3: Check through spatial decomposition (IfcRelAggregates)
         # Products may be part of an aggregate where the parent is a storey
         if hasattr(product, 'Decomposes') and product.Decomposes:
             for rel in product.Decomposes:
@@ -167,7 +220,12 @@ def get_product_storey(product):
                     parent = rel.RelatingObject
                     # Direct decomposition by storey
                     if parent.is_a("IfcBuildingStorey"):
-                        return parent.Name or parent.LongName or f"Storey #{parent.id()}"
+                        return _get_storey_name(parent)
+                    # Check if decomposed by a space
+                    elif parent.is_a("IfcSpace"):
+                        storey_name = _find_storey_from_space(parent)
+                        if storey_name:
+                            return storey_name
     except Exception:
         pass
     
@@ -186,7 +244,7 @@ def get_all_storeys(ifc_file):
     """
     storeys = []
     for storey in ifc_file.by_type("IfcBuildingStorey"):
-        storey_name = storey.Name or storey.LongName or f"Storey #{storey.id()}"
+        storey_name = _get_storey_name(storey)
         # Get elevation, use None if not available (not 0.0 as that's a valid ground floor elevation)
         elevation = storey.Elevation if hasattr(storey, 'Elevation') and storey.Elevation is not None else None
         storeys.append((storey_name, elevation))
@@ -223,6 +281,99 @@ def get_products_by_storey(ifc_file):
         storey_products[storey_name][product_type] += 1
     
     return storey_products
+
+
+def analyze_unassigned_objects(ifc_file, storey_products):
+    """
+    Analyze unassigned objects to help understand why they lack storey assignment.
+    
+    Args:
+        ifc_file: Opened IFC file object
+        storey_products: Dictionary from get_products_by_storey()
+    """
+    if "Unassigned" not in storey_products:
+        return
+    
+    print(f"\n{'='*60}")
+    print("Analyzing Unassigned Objects:")
+    print(f"{'='*60}\n")
+    
+    print("Checking spatial relationships for unassigned objects...")
+    print("This can help identify if objects are related to spaces that")
+    print("aren't properly linked to storeys.\n")
+    
+    all_products = ifc_file.by_type("IfcProduct")
+    unassigned_with_space = {}
+    unassigned_with_no_relationship = {}
+    
+    for product in all_products:
+        storey_name = get_product_storey(product)
+        if storey_name != "Unassigned":
+            continue
+        
+        product_type = product.is_a()
+        has_spatial_relationship = False
+        space_info = []
+        
+        # Check if contained in any structure
+        if hasattr(product, 'ContainedInStructure') and product.ContainedInStructure:
+            has_spatial_relationship = True
+            for rel in product.ContainedInStructure:
+                if hasattr(rel, 'RelatingStructure'):
+                    structure = rel.RelatingStructure
+                    space_info.append(f"Contained in {structure.is_a()}")
+        
+        # Check if referenced in any structure
+        if hasattr(product, 'ReferencedInStructures') and product.ReferencedInStructures:
+            has_spatial_relationship = True
+            for rel in product.ReferencedInStructures:
+                if hasattr(rel, 'RelatingStructure'):
+                    structure = rel.RelatingStructure
+                    space_info.append(f"Referenced in {structure.is_a()}")
+        
+        # Check if part of any decomposition
+        if hasattr(product, 'Decomposes') and product.Decomposes:
+            has_spatial_relationship = True
+            for rel in product.Decomposes:
+                if hasattr(rel, 'RelatingObject'):
+                    parent = rel.RelatingObject
+                    space_info.append(f"Decomposes {parent.is_a()}")
+        
+        if has_spatial_relationship:
+            key = f"{product_type}"
+            if key not in unassigned_with_space:
+                unassigned_with_space[key] = {"count": 0, "relationships": set()}
+            unassigned_with_space[key]["count"] += 1
+            unassigned_with_space[key]["relationships"].update(space_info)
+        else:
+            if product_type not in unassigned_with_no_relationship:
+                unassigned_with_no_relationship[product_type] = 0
+            unassigned_with_no_relationship[product_type] += 1
+    
+    if unassigned_with_space:
+        print("Objects with spatial relationships but no storey assignment:")
+        print("-" * 60)
+        for product_type, info in sorted(unassigned_with_space.items(), 
+                                         key=lambda x: x[1]["count"], reverse=True):
+            print(f"  {product_type:40s}: {info['count']:5d}")
+            for rel in sorted(info["relationships"]):
+                print(f"    → {rel}")
+        print()
+    
+    if unassigned_with_no_relationship:
+        print("Objects with NO spatial relationships:")
+        print("-" * 60)
+        for product_type, count in sorted(unassigned_with_no_relationship.items(), 
+                                          key=lambda x: x[1], reverse=True):
+            print(f"  {product_type:40s}: {count:5d}")
+        print()
+    
+    print("Recommendation:")
+    print("  • Objects 'Contained in' or 'Referenced in' IfcSpace should have")
+    print("    their spaces properly linked to an IfcBuildingStorey")
+    print("  • Objects with no spatial relationships may need to be assigned")
+    print("    to a space or storey in your BIM authoring tool")
+    print(f"{'='*60}\n")
 
 
 def display_products_by_storey(ifc_file, storey_products):
@@ -355,6 +506,188 @@ def display_categorized_products(categorized_products):
     print(f"{'='*60}\n")
 
 
+def _get_products_in_systems(ifc_file):
+    """
+    Get set of all product IDs that are assigned to systems.
+    
+    Args:
+        ifc_file: Opened IFC file object
+        
+    Returns:
+        Set of product IDs that are in systems
+    """
+    products_in_systems = set()
+    all_systems = ifc_file.by_type("IfcSystem")
+    
+    for system in all_systems:
+        if hasattr(system, 'IsGroupedBy') and system.IsGroupedBy:
+            for rel in system.IsGroupedBy:
+                if hasattr(rel, 'RelatedObjects'):
+                    for obj in rel.RelatedObjects:
+                        if obj.is_a("IfcProduct"):
+                            products_in_systems.add(obj.id())
+    
+    return products_in_systems
+
+
+def get_product_systems(ifc_file):
+    """
+    Organize products by their system assignments (e.g., electrical circuits, HVAC systems).
+    
+    Args:
+        ifc_file: Opened IFC file object
+        
+    Returns:
+        Dictionary mapping system names to product type counts
+    """
+    system_products = {}
+    
+    # Get all systems in the file
+    # IfcSystem is the base class for all systems (electrical, HVAC, etc.)
+    all_systems = ifc_file.by_type("IfcSystem")
+    
+    for system in all_systems:
+        # Get system name, handling None and empty strings
+        system_name = (system.Name if system.Name else None) or \
+                     (system.LongName if system.LongName else None) or \
+                     f"System #{system.id()}"
+        system_type = system.is_a()
+        
+        # Get system type for better categorization
+        system_key = f"{system_name} ({system_type})"
+        
+        if system_key not in system_products:
+            system_products[system_key] = {}
+        
+        # Get elements assigned to this system through IfcRelAssignsToGroup
+        if hasattr(system, 'IsGroupedBy') and system.IsGroupedBy:
+            for rel in system.IsGroupedBy:
+                if hasattr(rel, 'RelatedObjects'):
+                    for obj in rel.RelatedObjects:
+                        if obj.is_a("IfcProduct"):
+                            product_type = obj.is_a()
+                            if product_type not in system_products[system_key]:
+                                system_products[system_key][product_type] = 0
+                            system_products[system_key][product_type] += 1
+    
+    return system_products
+
+
+def display_products_by_system(system_products):
+    """
+    Display products organized by MEP systems (electrical circuits, HVAC systems, etc.).
+    
+    Args:
+        system_products: Dictionary from get_product_systems()
+    """
+    if not system_products:
+        return
+    
+    print(f"\n{'='*60}")
+    print("Products by MEP System:")
+    print(f"{'='*60}\n")
+    
+    print("This shows how products are organized into systems such as")
+    print("electrical circuits, HVAC systems, plumbing systems, etc.\n")
+    
+    # Sort systems by total item count (highest first)
+    sorted_systems = sorted(
+        system_products.items(),
+        key=lambda x: sum(x[1].values()),
+        reverse=True
+    )
+    
+    grand_total = 0
+    
+    for system_name, products in sorted_systems:
+        system_total = sum(products.values())
+        grand_total += system_total
+        
+        print(f"\n{system_name} - {system_total} items:")
+        print("-" * 60)
+        
+        # Sort products by count (highest first)
+        sorted_products = sorted(products.items(), key=lambda x: x[1], reverse=True)
+        
+        for product_type, count in sorted_products:
+            print(f"  {product_type:40s}: {count:5d}")
+    
+    print(f"\n{'='*60}")
+    print(f"Total Products in Systems: {grand_total}")
+    print(f"{'='*60}\n")
+
+
+def get_unassigned_to_systems(ifc_file, system_products):
+    """
+    Find products that are not assigned to any system.
+    
+    Args:
+        ifc_file: Opened IFC file object
+        system_products: Dictionary from get_product_systems()
+        
+    Returns:
+        Dictionary of product type counts not assigned to any system
+    """
+    # Get all products that are in systems
+    products_in_systems = _get_products_in_systems(ifc_file)
+    
+    # Count MEP products not in any system
+    unassigned_products = {}
+    
+    # Check all MEP-related product types (using list concatenation for clarity)
+    mep_types = (
+        PRODUCT_CATEGORIES.get("MEP & HVAC", []) +
+        PRODUCT_CATEGORIES.get("Electrical & Lighting", []) +
+        PRODUCT_CATEGORIES.get("Plumbing & Sanitary", []) +
+        PRODUCT_CATEGORIES.get("Sensors & Controls", [])
+    )
+    
+    for product_type in mep_types:
+        products = ifc_file.by_type(product_type)
+        for product in products:
+            if product.id() not in products_in_systems:
+                if product_type not in unassigned_products:
+                    unassigned_products[product_type] = 0
+                unassigned_products[product_type] += 1
+    
+    return unassigned_products
+
+
+def display_system_summary(system_products, unassigned_products):
+    """
+    Display a summary of system organization.
+    
+    Args:
+        system_products: Dictionary from get_product_systems()
+        unassigned_products: Dictionary from get_unassigned_to_systems()
+    """
+    if not system_products and not unassigned_products:
+        print(f"\n{'='*60}")
+        print("MEP System Analysis:")
+        print(f"{'='*60}\n")
+        print("No MEP systems found in this IFC file.")
+        print("Systems are used to organize MEP elements like electrical circuits,")
+        print("HVAC zones, and plumbing networks.\n")
+        return
+    
+    if unassigned_products:
+        print(f"\n{'='*60}")
+        print("MEP Products Not Assigned to Systems:")
+        print(f"{'='*60}\n")
+        
+        total_unassigned = sum(unassigned_products.values())
+        print(f"Found {total_unassigned} MEP products not assigned to any system:\n")
+        
+        sorted_unassigned = sorted(unassigned_products.items(), key=lambda x: x[1], reverse=True)
+        for product_type, count in sorted_unassigned:
+            print(f"  {product_type:40s}: {count:5d}")
+        
+        print("\nRecommendation:")
+        print("  • Assign MEP elements to appropriate systems in your BIM authoring tool")
+        print("  • Systems help track electrical circuits, HVAC zones, plumbing networks, etc.")
+        print(f"{'='*60}\n")
+
+
 def analyze_ifc_file(file_path):
     """
     Analyze an IFC file and count various object types.
@@ -427,6 +760,17 @@ def analyze_ifc_file(file_path):
         # Get and display products organized by floor/storey
         storey_products = get_products_by_storey(ifc_file)
         display_products_by_storey(ifc_file, storey_products)
+        
+        # Analyze unassigned objects to help users understand why objects lack storey assignment
+        analyze_unassigned_objects(ifc_file, storey_products)
+        
+        # Get and display products organized by MEP systems
+        system_products = get_product_systems(ifc_file)
+        display_products_by_system(system_products)
+        
+        # Show MEP products not assigned to any system
+        unassigned_to_systems = get_unassigned_to_systems(ifc_file, system_products)
+        display_system_summary(system_products, unassigned_to_systems)
         
         return results
         

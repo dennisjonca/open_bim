@@ -26,6 +26,23 @@ A Python script that uses the ifcopenshell API to read and analyze IFC (Industry
   - Sorted by elevation from lowest to highest
   - Shows elevation values for each floor
   - Includes total counts per floor and grand total
+  - **Enhanced spatial relationship detection** for better storey assignment:
+    - Checks `IfcRelContainedInSpatialStructure` (direct containment)
+    - Checks `IfcRelReferencedInSpatialStructure` (often used for MEP/outlets)
+    - Checks `IfcRelAggregates` (spatial decomposition)
+    - Traverses through spaces to find parent storeys
+- **Unassigned Object Analysis** - Helps diagnose why objects lack storey assignment:
+  - Shows which objects have spatial relationships but no storey assignment
+  - Shows which objects have no spatial relationships at all
+  - Displays the types of relationships found for debugging
+  - Provides recommendations for fixing assignments in BIM authoring tools
+- **MEP System Organization** - Shows products organized by MEP systems:
+  - Displays electrical circuits with all connected devices (outlets, fixtures, etc.)
+  - Shows HVAC systems with their components (pumps, valves, terminals, etc.)
+  - Lists plumbing systems and their connections
+  - Identifies MEP products not assigned to any system
+  - Helps understand system connectivity and organization
+  - Uses `IfcSystem`, `IfcElectricalCircuit`, and `IfcDistributionSystem` relationships
 - **Displays project information** and IFC schema version
 - **Sorted by count** within each category for easy analysis
 
@@ -148,8 +165,93 @@ First Floor (Elevation: 3.50m) - 1523 items:
 
 ... (more floors) ...
 
+Unassigned - 245 items:
+------------------------------------------------------------
+  IfcOutlet                               :   156
+  IfcLightFixture                         :    45
+  IfcSensor                               :    32
+  IfcSpace                                :    12
+
 ============================================================
 Total Products Across All Floors: 4500
+============================================================
+
+============================================================
+Analyzing Unassigned Objects:
+============================================================
+
+Checking spatial relationships for unassigned objects...
+This can help identify if objects are related to spaces that
+aren't properly linked to storeys.
+
+Objects with spatial relationships but no storey assignment:
+------------------------------------------------------------
+  IfcOutlet                               :   156
+    → Referenced in IfcSpace
+  IfcLightFixture                         :    45
+    → Referenced in IfcSpace
+  IfcSensor                               :    32
+    → Referenced in IfcSpace
+
+Objects with NO spatial relationships:
+------------------------------------------------------------
+  IfcSpace                                :    12
+
+Recommendation:
+  • Objects 'Contained in' or 'Referenced in' IfcSpace should have
+    their spaces properly linked to an IfcBuildingStorey
+  • Objects with no spatial relationships may need to be assigned
+    to a space or storey in your BIM authoring tool
+============================================================
+
+============================================================
+Products by MEP System:
+============================================================
+
+This shows how products are organized into systems such as
+electrical circuits, HVAC systems, plumbing systems, etc.
+
+Circuit A-01 (IfcElectricalCircuit) - 45 items:
+------------------------------------------------------------
+  IfcOutlet                               :    32
+  IfcLightFixture                         :     8
+  IfcSwitchingDevice                      :     5
+
+Circuit A-02 (IfcElectricalCircuit) - 38 items:
+------------------------------------------------------------
+  IfcOutlet                               :    28
+  IfcLightFixture                         :     7
+  IfcSwitchingDevice                      :     3
+
+HVAC Zone 1 (IfcDistributionSystem) - 156 items:
+------------------------------------------------------------
+  IfcAirTerminal                          :    89
+  IfcDuctSegment                          :    45
+  IfcDamper                               :    22
+
+Domestic Cold Water (IfcDistributionSystem) - 67 items:
+------------------------------------------------------------
+  IfcPipeSegment                          :    45
+  IfcValve                                :    15
+  IfcSanitaryTerminal                     :     7
+
+============================================================
+Total Products in Systems: 306
+============================================================
+
+============================================================
+MEP Products Not Assigned to Systems:
+============================================================
+
+Found 89 MEP products not assigned to any system:
+
+  IfcOutlet                               :    45
+  IfcLightFixture                         :    23
+  IfcSensor                               :    21
+
+Recommendation:
+  • Assign MEP elements to appropriate systems in your BIM authoring tool
+  • Systems help track electrical circuits, HVAC zones, plumbing networks, etc.
 ============================================================
 ```
 
