@@ -2,7 +2,7 @@
 Query functions for IFC database.
 Provides various query operations for analyzing IFC data.
 """
-from sqlalchemy import func
+from sqlalchemy import func, case
 from db_models import Project, Storey, Product, create_database
 
 
@@ -76,8 +76,10 @@ def get_all_floors(db_path='ifc_data.db'):
     
     try:
         # Order by elevation, putting NULL values at the end
+        # SQLite doesn't support NULLS LAST, so use CASE statement
         storeys = session.query(Storey).order_by(
-            Storey.elevation.asc().nulls_last()
+            case((Storey.elevation.is_(None), 1), else_=0),
+            Storey.elevation.asc()
         ).all()
         return [(s.name, s.elevation) for s in storeys]
     finally:
@@ -121,13 +123,17 @@ def get_floor_summary(db_path='ifc_data.db'):
     
     try:
         # Order by elevation, putting NULL values at the end
+        # SQLite doesn't support NULLS LAST, so use CASE statement
         results = session.query(
             Storey.name,
             Storey.elevation,
             func.count(Product.id).label('count')
         ).outerjoin(Product).group_by(
             Storey.id, Storey.name, Storey.elevation
-        ).order_by(Storey.elevation.asc().nulls_last()).all()
+        ).order_by(
+            case((Storey.elevation.is_(None), 1), else_=0),
+            Storey.elevation.asc()
+        ).all()
         
         return [(row.name, row.elevation, row.count) for row in results]
     finally:
