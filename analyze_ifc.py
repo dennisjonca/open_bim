@@ -135,10 +135,10 @@ def _get_storey_name(storey):
     Get a displayable name for a storey.
     
     Args:
-        storey: IFC Building Storey element
+        storey: IfcBuildingStorey element
         
     Returns:
-        Storey name string
+        str: Storey name string
     """
     return storey.Name or storey.LongName or f"Storey #{storey.id()}"
 
@@ -148,10 +148,10 @@ def _find_storey_from_space(space):
     Find the parent storey of a space by traversing spatial relationships.
     
     Args:
-        space: IFC Space element
+        space: IfcSpace element
         
     Returns:
-        Storey name or None if not found
+        str or None: Storey name string if found, None otherwise
     """
     # Try containment relationships
     if hasattr(space, 'ContainedInStructure') and space.ContainedInStructure:
