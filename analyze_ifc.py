@@ -158,8 +158,41 @@ def get_product_storey(product):
                                     parent = space_rel.RelatingStructure
                                     if parent.is_a("IfcBuildingStorey"):
                                         return parent.Name or parent.LongName or f"Storey #{parent.id()}"
+                        # Try spatial decomposition for the space itself
+                        if hasattr(structure, 'Decomposes') and structure.Decomposes:
+                            for space_rel in structure.Decomposes:
+                                if hasattr(space_rel, 'RelatingObject'):
+                                    parent = space_rel.RelatingObject
+                                    if parent.is_a("IfcBuildingStorey"):
+                                        return parent.Name or parent.LongName or f"Storey #{parent.id()}"
         
-        # Method 2: Check through spatial decomposition (IfcRelAggregates)
+        # Method 2: Check through IfcRelReferencedInSpatialStructure
+        # This is often used for distribution elements (MEP, outlets, etc.)
+        if hasattr(product, 'ReferencedInStructures') and product.ReferencedInStructures:
+            for rel in product.ReferencedInStructures:
+                if hasattr(rel, 'RelatingStructure'):
+                    structure = rel.RelatingStructure
+                    # Check if it's directly referenced in a storey
+                    if structure.is_a("IfcBuildingStorey"):
+                        return structure.Name or structure.LongName or f"Storey #{structure.id()}"
+                    # Check if it's referenced in a space
+                    elif structure.is_a("IfcSpace"):
+                        # Try to find the storey that contains this space
+                        if hasattr(structure, 'ContainedInStructure') and structure.ContainedInStructure:
+                            for space_rel in structure.ContainedInStructure:
+                                if hasattr(space_rel, 'RelatingStructure'):
+                                    parent = space_rel.RelatingStructure
+                                    if parent.is_a("IfcBuildingStorey"):
+                                        return parent.Name or parent.LongName or f"Storey #{parent.id()}"
+                        # Try spatial decomposition for the space
+                        if hasattr(structure, 'Decomposes') and structure.Decomposes:
+                            for space_rel in structure.Decomposes:
+                                if hasattr(space_rel, 'RelatingObject'):
+                                    parent = space_rel.RelatingObject
+                                    if parent.is_a("IfcBuildingStorey"):
+                                        return parent.Name or parent.LongName or f"Storey #{parent.id()}"
+        
+        # Method 3: Check through spatial decomposition (IfcRelAggregates)
         # Products may be part of an aggregate where the parent is a storey
         if hasattr(product, 'Decomposes') and product.Decomposes:
             for rel in product.Decomposes:
@@ -168,6 +201,22 @@ def get_product_storey(product):
                     # Direct decomposition by storey
                     if parent.is_a("IfcBuildingStorey"):
                         return parent.Name or parent.LongName or f"Storey #{parent.id()}"
+                    # Check if decomposed by a space
+                    elif parent.is_a("IfcSpace"):
+                        # Try to find the storey that contains this space
+                        if hasattr(parent, 'ContainedInStructure') and parent.ContainedInStructure:
+                            for space_rel in parent.ContainedInStructure:
+                                if hasattr(space_rel, 'RelatingStructure'):
+                                    grandparent = space_rel.RelatingStructure
+                                    if grandparent.is_a("IfcBuildingStorey"):
+                                        return grandparent.Name or grandparent.LongName or f"Storey #{grandparent.id()}"
+                        # Try spatial decomposition for the parent space
+                        if hasattr(parent, 'Decomposes') and parent.Decomposes:
+                            for space_rel in parent.Decomposes:
+                                if hasattr(space_rel, 'RelatingObject'):
+                                    grandparent = space_rel.RelatingObject
+                                    if grandparent.is_a("IfcBuildingStorey"):
+                                        return grandparent.Name or grandparent.LongName or f"Storey #{grandparent.id()}"
     except Exception:
         pass
     
@@ -223,6 +272,99 @@ def get_products_by_storey(ifc_file):
         storey_products[storey_name][product_type] += 1
     
     return storey_products
+
+
+def analyze_unassigned_objects(ifc_file, storey_products):
+    """
+    Analyze unassigned objects to help understand why they lack storey assignment.
+    
+    Args:
+        ifc_file: Opened IFC file object
+        storey_products: Dictionary from get_products_by_storey()
+    """
+    if "Unassigned" not in storey_products:
+        return
+    
+    print(f"\n{'='*60}")
+    print("Analyzing Unassigned Objects:")
+    print(f"{'='*60}\n")
+    
+    print("Checking spatial relationships for unassigned objects...")
+    print("This can help identify if objects are related to spaces that")
+    print("aren't properly linked to storeys.\n")
+    
+    all_products = ifc_file.by_type("IfcProduct")
+    unassigned_with_space = {}
+    unassigned_with_no_relationship = {}
+    
+    for product in all_products:
+        storey_name = get_product_storey(product)
+        if storey_name != "Unassigned":
+            continue
+        
+        product_type = product.is_a()
+        has_spatial_relationship = False
+        space_info = []
+        
+        # Check if contained in any structure
+        if hasattr(product, 'ContainedInStructure') and product.ContainedInStructure:
+            has_spatial_relationship = True
+            for rel in product.ContainedInStructure:
+                if hasattr(rel, 'RelatingStructure'):
+                    structure = rel.RelatingStructure
+                    space_info.append(f"Contained in {structure.is_a()}")
+        
+        # Check if referenced in any structure
+        if hasattr(product, 'ReferencedInStructures') and product.ReferencedInStructures:
+            has_spatial_relationship = True
+            for rel in product.ReferencedInStructures:
+                if hasattr(rel, 'RelatingStructure'):
+                    structure = rel.RelatingStructure
+                    space_info.append(f"Referenced in {structure.is_a()}")
+        
+        # Check if part of any decomposition
+        if hasattr(product, 'Decomposes') and product.Decomposes:
+            has_spatial_relationship = True
+            for rel in product.Decomposes:
+                if hasattr(rel, 'RelatingObject'):
+                    parent = rel.RelatingObject
+                    space_info.append(f"Decomposes {parent.is_a()}")
+        
+        if has_spatial_relationship:
+            key = f"{product_type}"
+            if key not in unassigned_with_space:
+                unassigned_with_space[key] = {"count": 0, "relationships": set()}
+            unassigned_with_space[key]["count"] += 1
+            unassigned_with_space[key]["relationships"].update(space_info)
+        else:
+            if product_type not in unassigned_with_no_relationship:
+                unassigned_with_no_relationship[product_type] = 0
+            unassigned_with_no_relationship[product_type] += 1
+    
+    if unassigned_with_space:
+        print("Objects with spatial relationships but no storey assignment:")
+        print("-" * 60)
+        for product_type, info in sorted(unassigned_with_space.items(), 
+                                         key=lambda x: x[1]["count"], reverse=True):
+            print(f"  {product_type:40s}: {info['count']:5d}")
+            for rel in sorted(info["relationships"]):
+                print(f"    → {rel}")
+        print()
+    
+    if unassigned_with_no_relationship:
+        print("Objects with NO spatial relationships:")
+        print("-" * 60)
+        for product_type, count in sorted(unassigned_with_no_relationship.items(), 
+                                          key=lambda x: x[1], reverse=True):
+            print(f"  {product_type:40s}: {count:5d}")
+        print()
+    
+    print("Recommendation:")
+    print("  • Objects 'Contained in' or 'Referenced in' IfcSpace should have")
+    print("    their spaces properly linked to an IfcBuildingStorey")
+    print("  • Objects with no spatial relationships may need to be assigned")
+    print("    to a space or storey in your BIM authoring tool")
+    print(f"{'='*60}\n")
 
 
 def display_products_by_storey(ifc_file, storey_products):
@@ -427,6 +569,9 @@ def analyze_ifc_file(file_path):
         # Get and display products organized by floor/storey
         storey_products = get_products_by_storey(ifc_file)
         display_products_by_storey(ifc_file, storey_products)
+        
+        # Analyze unassigned objects to help users understand why objects lack storey assignment
+        analyze_unassigned_objects(ifc_file, storey_products)
         
         return results
         
