@@ -7,22 +7,22 @@ A Python script that uses the ifcopenshell API to read and analyze IFC (Industry
 
 ### Features
 
-- Automatically detects IFC files in the current directory
-- Reads IFC files using ifcopenshell API only
-- Counts common BIM object types:
-  - Walls (IfcWall, IfcWallStandardCase)
-  - Doors (IfcDoor)
-  - Windows (IfcWindow)
-  - Slabs (IfcSlab)
-  - Beams (IfcBeam)
-  - Columns (IfcColumn)
-  - Stairs (IfcStair)
-  - Roofs (IfcRoof)
-  - Spaces (IfcSpace)
-  - Furniture (IfcFurnishingElement)
-  - And more...
-- Displays project information
-- Shows IFC schema version
+- **Automatically detects IFC files** in the current directory (shows full file paths)
+- **Reads IFC files** using ifcopenshell API only
+- **Quick summary** of common BIM object types:
+  - Walls, Doors, Windows, Slabs, Beams, Columns
+  - Stairs, Roofs, Spaces, Furniture, and more
+- **Comprehensive product listing** - Shows ALL IfcProduct types organized by category:
+  - **Structural Elements**: Walls, beams, columns, slabs, footings, etc.
+  - **MEP & HVAC**: Ducts, pipes, pumps, valves, boilers, chillers, etc.
+  - **Electrical & Lighting**: Lamps, light fixtures, sensors, cables, outlets, etc.
+  - **Plumbing & Sanitary**: Sanitary terminals, waste terminals, etc.
+  - **Sensors & Controls**: Sensors, actuators, alarms, controllers, etc.
+  - **Furnishing & Equipment**: Furniture, medical devices, audio/visual equipment, etc.
+  - **Transport**: Transport elements
+  - **And more categories...**
+- **Displays project information** and IFC schema version
+- **Sorted by count** within each category for easy analysis
 
 ### Installation
 
@@ -56,11 +56,13 @@ chmod +x analyze_ifc.py
 IFC File Analyzer using ifcopenshell
 ============================================================
 
-Found 1 IFC file(s):
-  1. example.ifc
+Found 1 IFC file(s) in current directory:
+Current directory: /path/to/your/directory
+
+  1. /path/to/your/directory/example.ifc
 
 ============================================================
-Analyzing IFC file: example.ifc
+Analyzing IFC file: /path/to/your/directory/example.ifc
 ============================================================
 
 IFC Schema: IFC4
@@ -85,6 +87,27 @@ Object Count Summary:
 
 ============================================================
 Total Specific Objects Counted: 123
+============================================================
+
+============================================================
+All Products by Category:
+============================================================
+
+Electrical & Lighting (450 items):
+------------------------------------------------------------
+  IfcLightFixture                         :   300
+  IfcSensor                               :   100
+  IfcLamp                                 :    50
+
+Structural Elements (125 items):
+------------------------------------------------------------
+  IfcBeam                                 :    80
+  IfcWall                                 :    45
+
+... (more categories) ...
+
+============================================================
+Total Products Across All Categories: 4500
 ============================================================
 ```
 
