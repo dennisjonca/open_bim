@@ -13,10 +13,17 @@ import ifcopenshell
 # Import our query functions
 import ifc_queries
 
-app = Flask(__name__)
+# Get the directory where this script is located
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
+# Initialize Flask with explicit paths for templates and static files
+app = Flask(__name__,
+            template_folder=os.path.join(BASE_DIR, 'templates'),
+            static_folder=os.path.join(BASE_DIR, 'static'))
+
 # Use environment variable for secret key, generate random one if not set
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or os.urandom(24).hex()
-app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['UPLOAD_FOLDER'] = os.path.join(BASE_DIR, 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB max file size
 
 ALLOWED_EXTENSIONS = {'ifc', 'IFC'}
