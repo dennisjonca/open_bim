@@ -36,6 +36,13 @@ A Python script that uses the ifcopenshell API to read and analyze IFC (Industry
   - Shows which objects have no spatial relationships at all
   - Displays the types of relationships found for debugging
   - Provides recommendations for fixing assignments in BIM authoring tools
+- **MEP System Organization** - Shows products organized by MEP systems:
+  - Displays electrical circuits with all connected devices (outlets, fixtures, etc.)
+  - Shows HVAC systems with their components (pumps, valves, terminals, etc.)
+  - Lists plumbing systems and their connections
+  - Identifies MEP products not assigned to any system
+  - Helps understand system connectivity and organization
+  - Uses `IfcSystem`, `IfcElectricalCircuit`, and `IfcDistributionSystem` relationships
 - **Displays project information** and IFC schema version
 - **Sorted by count** within each category for easy analysis
 
@@ -195,6 +202,56 @@ Recommendation:
     their spaces properly linked to an IfcBuildingStorey
   • Objects with no spatial relationships may need to be assigned
     to a space or storey in your BIM authoring tool
+============================================================
+
+============================================================
+Products by MEP System:
+============================================================
+
+This shows how products are organized into systems such as
+electrical circuits, HVAC systems, plumbing systems, etc.
+
+Circuit A-01 (IfcElectricalCircuit) - 45 items:
+------------------------------------------------------------
+  IfcOutlet                               :    32
+  IfcLightFixture                         :     8
+  IfcSwitchingDevice                      :     5
+
+Circuit A-02 (IfcElectricalCircuit) - 38 items:
+------------------------------------------------------------
+  IfcOutlet                               :    28
+  IfcLightFixture                         :     7
+  IfcSwitchingDevice                      :     3
+
+HVAC Zone 1 (IfcDistributionSystem) - 156 items:
+------------------------------------------------------------
+  IfcAirTerminal                          :    89
+  IfcDuctSegment                          :    45
+  IfcDamper                               :    22
+
+Domestic Cold Water (IfcDistributionSystem) - 67 items:
+------------------------------------------------------------
+  IfcPipeSegment                          :    45
+  IfcValve                                :    15
+  IfcSanitaryTerminal                     :     7
+
+============================================================
+Total Products in Systems: 306
+============================================================
+
+============================================================
+MEP Products Not Assigned to Systems:
+============================================================
+
+Found 89 MEP products not assigned to any system:
+
+  IfcOutlet                               :    45
+  IfcLightFixture                         :    23
+  IfcSensor                               :    21
+
+Recommendation:
+  • Assign MEP elements to appropriate systems in your BIM authoring tool
+  • Systems help track electrical circuits, HVAC zones, plumbing networks, etc.
 ============================================================
 ```
 

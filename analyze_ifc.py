@@ -506,6 +506,169 @@ def display_categorized_products(categorized_products):
     print(f"{'='*60}\n")
 
 
+def get_product_systems(ifc_file):
+    """
+    Organize products by their system assignments (e.g., electrical circuits, HVAC systems).
+    
+    Args:
+        ifc_file: Opened IFC file object
+        
+    Returns:
+        Dictionary mapping system names to product type counts
+    """
+    system_products = {}
+    
+    # Get all systems in the file
+    # IfcSystem is the base class for all systems (electrical, HVAC, etc.)
+    all_systems = ifc_file.by_type("IfcSystem")
+    
+    for system in all_systems:
+        system_name = system.Name or system.LongName or f"System #{system.id()}"
+        system_type = system.is_a()
+        
+        # Get system type for better categorization
+        system_key = f"{system_name} ({system_type})"
+        
+        if system_key not in system_products:
+            system_products[system_key] = {}
+        
+        # Get elements assigned to this system through IfcRelAssignsToGroup
+        if hasattr(system, 'IsGroupedBy') and system.IsGroupedBy:
+            for rel in system.IsGroupedBy:
+                if hasattr(rel, 'RelatedObjects'):
+                    for obj in rel.RelatedObjects:
+                        if obj.is_a("IfcProduct"):
+                            product_type = obj.is_a()
+                            if product_type not in system_products[system_key]:
+                                system_products[system_key][product_type] = 0
+                            system_products[system_key][product_type] += 1
+    
+    return system_products
+
+
+def display_products_by_system(system_products):
+    """
+    Display products organized by MEP systems (electrical circuits, HVAC systems, etc.).
+    
+    Args:
+        system_products: Dictionary from get_product_systems()
+    """
+    if not system_products:
+        return
+    
+    print(f"\n{'='*60}")
+    print("Products by MEP System:")
+    print(f"{'='*60}\n")
+    
+    print("This shows how products are organized into systems such as")
+    print("electrical circuits, HVAC systems, plumbing systems, etc.\n")
+    
+    # Sort systems by total item count (highest first)
+    sorted_systems = sorted(
+        system_products.items(),
+        key=lambda x: sum(x[1].values()),
+        reverse=True
+    )
+    
+    grand_total = 0
+    
+    for system_name, products in sorted_systems:
+        system_total = sum(products.values())
+        grand_total += system_total
+        
+        print(f"\n{system_name} - {system_total} items:")
+        print("-" * 60)
+        
+        # Sort products by count (highest first)
+        sorted_products = sorted(products.items(), key=lambda x: x[1], reverse=True)
+        
+        for product_type, count in sorted_products:
+            print(f"  {product_type:40s}: {count:5d}")
+    
+    print(f"\n{'='*60}")
+    print(f"Total Products in Systems: {grand_total}")
+    print(f"{'='*60}\n")
+
+
+def get_unassigned_to_systems(ifc_file, system_products):
+    """
+    Find products that are not assigned to any system.
+    
+    Args:
+        ifc_file: Opened IFC file object
+        system_products: Dictionary from get_product_systems()
+        
+    Returns:
+        Dictionary of product type counts not assigned to any system
+    """
+    # Get all products that are in systems
+    products_in_systems = set()
+    all_systems = ifc_file.by_type("IfcSystem")
+    
+    for system in all_systems:
+        if hasattr(system, 'IsGroupedBy') and system.IsGroupedBy:
+            for rel in system.IsGroupedBy:
+                if hasattr(rel, 'RelatedObjects'):
+                    for obj in rel.RelatedObjects:
+                        if obj.is_a("IfcProduct"):
+                            products_in_systems.add(obj.id())
+    
+    # Count MEP products not in any system
+    unassigned_products = {}
+    
+    # Check all MEP-related product types
+    mep_types = []
+    mep_types.extend(PRODUCT_CATEGORIES.get("MEP & HVAC", []))
+    mep_types.extend(PRODUCT_CATEGORIES.get("Electrical & Lighting", []))
+    mep_types.extend(PRODUCT_CATEGORIES.get("Plumbing & Sanitary", []))
+    mep_types.extend(PRODUCT_CATEGORIES.get("Sensors & Controls", []))
+    
+    for product_type in mep_types:
+        products = ifc_file.by_type(product_type)
+        for product in products:
+            if product.id() not in products_in_systems:
+                if product_type not in unassigned_products:
+                    unassigned_products[product_type] = 0
+                unassigned_products[product_type] += 1
+    
+    return unassigned_products
+
+
+def display_system_summary(system_products, unassigned_products):
+    """
+    Display a summary of system organization.
+    
+    Args:
+        system_products: Dictionary from get_product_systems()
+        unassigned_products: Dictionary from get_unassigned_to_systems()
+    """
+    if not system_products and not unassigned_products:
+        print(f"\n{'='*60}")
+        print("MEP System Analysis:")
+        print(f"{'='*60}\n")
+        print("No MEP systems found in this IFC file.")
+        print("Systems are used to organize MEP elements like electrical circuits,")
+        print("HVAC zones, and plumbing networks.\n")
+        return
+    
+    if unassigned_products:
+        print(f"\n{'='*60}")
+        print("MEP Products Not Assigned to Systems:")
+        print(f"{'='*60}\n")
+        
+        total_unassigned = sum(unassigned_products.values())
+        print(f"Found {total_unassigned} MEP products not assigned to any system:\n")
+        
+        sorted_unassigned = sorted(unassigned_products.items(), key=lambda x: x[1], reverse=True)
+        for product_type, count in sorted_unassigned:
+            print(f"  {product_type:40s}: {count:5d}")
+        
+        print("\nRecommendation:")
+        print("  • Assign MEP elements to appropriate systems in your BIM authoring tool")
+        print("  • Systems help track electrical circuits, HVAC zones, plumbing networks, etc.")
+        print(f"{'='*60}\n")
+
+
 def analyze_ifc_file(file_path):
     """
     Analyze an IFC file and count various object types.
@@ -581,6 +744,14 @@ def analyze_ifc_file(file_path):
         
         # Analyze unassigned objects to help users understand why objects lack storey assignment
         analyze_unassigned_objects(ifc_file, storey_products)
+        
+        # Get and display products organized by MEP systems
+        system_products = get_product_systems(ifc_file)
+        display_products_by_system(system_products)
+        
+        # Show MEP products not assigned to any system
+        unassigned_to_systems = get_unassigned_to_systems(ifc_file, system_products)
+        display_system_summary(system_products, unassigned_to_systems)
         
         return results
         
