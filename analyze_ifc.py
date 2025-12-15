@@ -141,7 +141,7 @@ def get_product_storey(product):
         Storey name or 'Unassigned' if not found
     """
     try:
-        # Try to get the container through IfcRelContainedInSpatialStructure
+        # Method 1: Try to get the container through IfcRelContainedInSpatialStructure
         if hasattr(product, 'ContainedInStructure') and product.ContainedInStructure:
             for rel in product.ContainedInStructure:
                 if hasattr(rel, 'RelatingStructure'):
@@ -149,20 +149,23 @@ def get_product_storey(product):
                     # Check if it's directly in a storey
                     if structure.is_a("IfcBuildingStorey"):
                         return structure.Name or structure.LongName or f"Storey #{structure.id()}"
-                    # Check if it's in a space within a storey
+                    # Check if it's in a space - traverse up to find the storey
                     elif structure.is_a("IfcSpace"):
-                        if hasattr(structure, 'Decomposes') and structure.Decomposes:
-                            for space_rel in structure.Decomposes:
-                                if hasattr(space_rel, 'RelatingObject'):
-                                    parent = space_rel.RelatingObject
+                        # Spaces are aggregated by storeys, check the space's container
+                        if hasattr(structure, 'ContainedInStructure') and structure.ContainedInStructure:
+                            for space_rel in structure.ContainedInStructure:
+                                if hasattr(space_rel, 'RelatingStructure'):
+                                    parent = space_rel.RelatingStructure
                                     if parent.is_a("IfcBuildingStorey"):
                                         return parent.Name or parent.LongName or f"Storey #{parent.id()}"
         
-        # Alternative: check through spatial decomposition
+        # Method 2: Check through spatial decomposition (IfcRelAggregates)
+        # Products may be part of an aggregate where the parent is a storey
         if hasattr(product, 'Decomposes') and product.Decomposes:
             for rel in product.Decomposes:
                 if hasattr(rel, 'RelatingObject'):
                     parent = rel.RelatingObject
+                    # Direct decomposition by storey
                     if parent.is_a("IfcBuildingStorey"):
                         return parent.Name or parent.LongName or f"Storey #{parent.id()}"
     except Exception:
@@ -184,11 +187,12 @@ def get_all_storeys(ifc_file):
     storeys = []
     for storey in ifc_file.by_type("IfcBuildingStorey"):
         storey_name = storey.Name or storey.LongName or f"Storey #{storey.id()}"
-        elevation = storey.Elevation if hasattr(storey, 'Elevation') and storey.Elevation else 0.0
+        # Get elevation, use None if not available (not 0.0 as that's a valid ground floor elevation)
+        elevation = storey.Elevation if hasattr(storey, 'Elevation') and storey.Elevation is not None else None
         storeys.append((storey_name, elevation))
     
-    # Sort by elevation (lowest to highest)
-    storeys.sort(key=lambda x: x[1])
+    # Sort by elevation (lowest to highest), putting None values at the end
+    storeys.sort(key=lambda x: (x[1] is None, x[1] if x[1] is not None else float('inf')))
     
     return storeys
 
@@ -255,7 +259,8 @@ def display_products_by_storey(ifc_file, storey_products):
         elevation_info = ""
         for name, elev in all_storeys:
             if name == storey_name:
-                elevation_info = f" (Elevation: {elev:.2f}m)" if elev != 0.0 else ""
+                if elev is not None:
+                    elevation_info = f" (Elevation: {elev:.2f}m)"
                 break
         
         print(f"\n{storey_name}{elevation_info} - {storey_total} items:")
