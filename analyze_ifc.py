@@ -37,12 +37,13 @@ OBJECT_TYPES = [
 
 def find_ifc_files():
     """Find all IFC files in the current directory only."""
-    # Get current working directory
+    # Get current working directory for absolute paths
     current_dir = os.getcwd()
     
     # Find IFC files in current directory only (not recursive)
     ifc_files = []
     for pattern in ["*.ifc", "*.IFC"]:
+        # Use absolute path to ensure we get full paths in output
         found_files = glob.glob(os.path.join(current_dir, pattern))
         ifc_files.extend(found_files)
     
@@ -52,7 +53,7 @@ def find_ifc_files():
     # Sort for consistent output
     ifc_files.sort()
     
-    return ifc_files
+    return ifc_files, current_dir
 
 
 def analyze_ifc_file(file_path):
@@ -133,7 +134,7 @@ def main():
     print("="*60)
     
     # Find IFC files in current directory
-    ifc_files = find_ifc_files()
+    ifc_files, current_dir = find_ifc_files()
     
     if not ifc_files:
         print("\nNo IFC files found in the current directory.")
@@ -142,7 +143,7 @@ def main():
         return 1
     
     print(f"\nFound {len(ifc_files)} IFC file(s) in current directory:")
-    print(f"Current directory: {os.getcwd()}\n")
+    print(f"Current directory: {current_dir}\n")
     for i, file in enumerate(ifc_files, 1):
         print(f"  {i}. {file}")
     
