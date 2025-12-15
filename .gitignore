@@ -44,3 +44,8 @@ Thumbs.db
 # IFC files (user will add their own)
 *.ifc
 *.IFC
+
+# SQLite databases
+*.db
+*.sqlite
+*.sqlite3
