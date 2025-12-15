@@ -506,6 +506,30 @@ def display_categorized_products(categorized_products):
     print(f"{'='*60}\n")
 
 
+def _get_products_in_systems(ifc_file):
+    """
+    Get set of all product IDs that are assigned to systems.
+    
+    Args:
+        ifc_file: Opened IFC file object
+        
+    Returns:
+        Set of product IDs that are in systems
+    """
+    products_in_systems = set()
+    all_systems = ifc_file.by_type("IfcSystem")
+    
+    for system in all_systems:
+        if hasattr(system, 'IsGroupedBy') and system.IsGroupedBy:
+            for rel in system.IsGroupedBy:
+                if hasattr(rel, 'RelatedObjects'):
+                    for obj in rel.RelatedObjects:
+                        if obj.is_a("IfcProduct"):
+                            products_in_systems.add(obj.id())
+    
+    return products_in_systems
+
+
 def get_product_systems(ifc_file):
     """
     Organize products by their system assignments (e.g., electrical circuits, HVAC systems).
@@ -523,7 +547,10 @@ def get_product_systems(ifc_file):
     all_systems = ifc_file.by_type("IfcSystem")
     
     for system in all_systems:
-        system_name = system.Name or system.LongName or f"System #{system.id()}"
+        # Get system name, handling None and empty strings
+        system_name = (system.Name if system.Name else None) or \
+                     (system.LongName if system.LongName else None) or \
+                     f"System #{system.id()}"
         system_type = system.is_a()
         
         # Get system type for better categorization
@@ -602,26 +629,18 @@ def get_unassigned_to_systems(ifc_file, system_products):
         Dictionary of product type counts not assigned to any system
     """
     # Get all products that are in systems
-    products_in_systems = set()
-    all_systems = ifc_file.by_type("IfcSystem")
-    
-    for system in all_systems:
-        if hasattr(system, 'IsGroupedBy') and system.IsGroupedBy:
-            for rel in system.IsGroupedBy:
-                if hasattr(rel, 'RelatedObjects'):
-                    for obj in rel.RelatedObjects:
-                        if obj.is_a("IfcProduct"):
-                            products_in_systems.add(obj.id())
+    products_in_systems = _get_products_in_systems(ifc_file)
     
     # Count MEP products not in any system
     unassigned_products = {}
     
-    # Check all MEP-related product types
-    mep_types = []
-    mep_types.extend(PRODUCT_CATEGORIES.get("MEP & HVAC", []))
-    mep_types.extend(PRODUCT_CATEGORIES.get("Electrical & Lighting", []))
-    mep_types.extend(PRODUCT_CATEGORIES.get("Plumbing & Sanitary", []))
-    mep_types.extend(PRODUCT_CATEGORIES.get("Sensors & Controls", []))
+    # Check all MEP-related product types (using list concatenation for clarity)
+    mep_types = (
+        PRODUCT_CATEGORIES.get("MEP & HVAC", []) +
+        PRODUCT_CATEGORIES.get("Electrical & Lighting", []) +
+        PRODUCT_CATEGORIES.get("Plumbing & Sanitary", []) +
+        PRODUCT_CATEGORIES.get("Sensors & Controls", [])
+    )
     
     for product_type in mep_types:
         products = ifc_file.by_type(product_type)
