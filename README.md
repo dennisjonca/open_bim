@@ -26,6 +26,16 @@ A Python script that uses the ifcopenshell API to read and analyze IFC (Industry
   - Sorted by elevation from lowest to highest
   - Shows elevation values for each floor
   - Includes total counts per floor and grand total
+  - **Enhanced spatial relationship detection** for better storey assignment:
+    - Checks `IfcRelContainedInSpatialStructure` (direct containment)
+    - Checks `IfcRelReferencedInSpatialStructure` (often used for MEP/outlets)
+    - Checks `IfcRelAggregates` (spatial decomposition)
+    - Traverses through spaces to find parent storeys
+- **Unassigned Object Analysis** - Helps diagnose why objects lack storey assignment:
+  - Shows which objects have spatial relationships but no storey assignment
+  - Shows which objects have no spatial relationships at all
+  - Displays the types of relationships found for debugging
+  - Provides recommendations for fixing assignments in BIM authoring tools
 - **Displays project information** and IFC schema version
 - **Sorted by count** within each category for easy analysis
 
@@ -148,8 +158,43 @@ First Floor (Elevation: 3.50m) - 1523 items:
 
 ... (more floors) ...
 
+Unassigned - 245 items:
+------------------------------------------------------------
+  IfcOutlet                               :   156
+  IfcLightFixture                         :    45
+  IfcSensor                               :    32
+  IfcSpace                                :    12
+
 ============================================================
 Total Products Across All Floors: 4500
+============================================================
+
+============================================================
+Analyzing Unassigned Objects:
+============================================================
+
+Checking spatial relationships for unassigned objects...
+This can help identify if objects are related to spaces that
+aren't properly linked to storeys.
+
+Objects with spatial relationships but no storey assignment:
+------------------------------------------------------------
+  IfcOutlet                               :   156
+    → Referenced in IfcSpace
+  IfcLightFixture                         :    45
+    → Referenced in IfcSpace
+  IfcSensor                               :    32
+    → Referenced in IfcSpace
+
+Objects with NO spatial relationships:
+------------------------------------------------------------
+  IfcSpace                                :    12
+
+Recommendation:
+  • Objects 'Contained in' or 'Referenced in' IfcSpace should have
+    their spaces properly linked to an IfcBuildingStorey
+  • Objects with no spatial relationships may need to be assigned
+    to a space or storey in your BIM authoring tool
 ============================================================
 ```
 
