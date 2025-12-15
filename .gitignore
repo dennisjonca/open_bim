@@ -44,3 +44,6 @@ Thumbs.db
 # IFC files (user will add their own)
 *.ifc
 *.IFC
+
+# Flask uploads directory
+uploads/

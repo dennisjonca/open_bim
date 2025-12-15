@@ -1,7 +1,60 @@
 # open_bim
 This Project tries to read and write ifc files from bim projects.
 
-## IFC File Analyzer
+## IFC Query Web Application
+
+A Flask-based web application that allows you to upload IFC files and query them through an intuitive web interface. Answer complex questions about your BIM data without writing code.
+
+### Features
+
+The web application provides 9 comprehensive query categories covering all aspects of IFC data:
+
+1. **Quantity & Cost Estimation** - Count elements per storey or building-wide
+2. **Lengths & Volumes** - Calculate total lengths of pipes, ducts, cables, and surface areas
+3. **Element Context** - Find elements in specific spaces or host types
+4. **System Analysis** - Analyze MEP systems and electrical circuits
+5. **Space & Usage** - Calculate areas and analyze space usage patterns
+6. **Compliance Checking** - Verify elements are in required locations
+7. **Installation Planning** - Coordinate on-site installation work
+8. **Maintenance & Handover** - Locate maintainable devices and distribution points
+9. **Compound Queries** - Complex queries with multiple filters
+
+### Quick Start
+
+1. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+2. Run the Flask application:
+```bash
+python app.py
+```
+
+3. Open your browser and navigate to:
+```
+http://localhost:5000
+```
+
+4. Upload an IFC file and start querying!
+
+### Usage
+
+1. **Upload IFC File**: Click "Choose IFC File" on the home page and upload your IFC file
+2. **Select Query Category**: Choose from 9 categories in the sidebar
+3. **Configure Query**: Fill in the form parameters for your specific question
+4. **Execute Query**: Click "Execute Query" to see results
+5. **View Results**: Results are displayed as tables, values, or compliance checks
+
+### Example Queries
+
+- "How many electrical outlets are on the ground floor?"
+- "What is the total length of potable water piping?"
+- "How many luminaires are installed in office spaces?"
+- "Which floor has the highest installation density?"
+- "Are there outlets in every office room?"
+
+## IFC File Analyzer (Command Line)
 
 A Python script that uses the ifcopenshell API to read and analyze IFC (Industry Foundation Classes) files. The script counts various BIM objects such as walls, doors, windows, slabs, beams, columns, and more.
 
