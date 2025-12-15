@@ -75,8 +75,9 @@ def get_all_floors(db_path='ifc_data.db'):
     session = get_session(db_path)
     
     try:
+        # Order by elevation, putting NULL values at the end
         storeys = session.query(Storey).order_by(
-            Storey.elevation.asc().nullslast()
+            Storey.elevation.asc().nulls_last()
         ).all()
         return [(s.name, s.elevation) for s in storeys]
     finally:
@@ -119,13 +120,14 @@ def get_floor_summary(db_path='ifc_data.db'):
     session = get_session(db_path)
     
     try:
+        # Order by elevation, putting NULL values at the end
         results = session.query(
             Storey.name,
             Storey.elevation,
             func.count(Product.id).label('count')
         ).outerjoin(Product).group_by(
             Storey.id, Storey.name, Storey.elevation
-        ).order_by(Storey.elevation.asc().nullslast()).all()
+        ).order_by(Storey.elevation.asc().nulls_last()).all()
         
         return [(row.name, row.elevation, row.count) for row in results]
     finally:
@@ -175,10 +177,11 @@ def get_unassigned_products(db_path='ifc_data.db'):
     session = get_session(db_path)
     
     try:
+        # Use is_(None) for proper NULL comparison in SQLAlchemy
         results = session.query(
             Product.ifc_type,
             func.count(Product.id).label('count')
-        ).filter(Product.storey_id == None).group_by(
+        ).filter(Product.storey_id.is_(None)).group_by(
             Product.ifc_type
         ).order_by(func.count(Product.id).desc()).all()
         
