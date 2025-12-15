@@ -18,7 +18,8 @@ except ImportError:
     sys.exit(1)
 
 
-# Common BIM object types to count
+# Common BIM object types to count (for quick summary section)
+# Note: Some types also appear in PRODUCT_CATEGORIES below for comprehensive listing
 OBJECT_TYPES = [
     "IfcWall",
     "IfcWallStandardCase",
@@ -155,7 +156,7 @@ def categorize_products(product_counts):
             type_to_category[ptype] = category
     
     # Categorize each product type
-    for product_type, count in sorted(product_counts.items()):
+    for product_type, count in product_counts.items():
         category = type_to_category.get(product_type, "Other Products")
         categorized[category].append((product_type, count))
     
