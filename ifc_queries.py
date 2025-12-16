@@ -106,21 +106,30 @@ def get_product_space(product):
 def get_element_length(element):
     """Get the length of a linear element."""
     try:
-        # Try to get from properties
+        # Try to get from element quantities (IfcElementQuantity) - most common for length data
         if hasattr(element, 'IsDefinedBy') and element.IsDefinedBy:
             for definition in element.IsDefinedBy:
                 if definition.is_a('IfcRelDefinesByProperties'):
-                    property_set = definition.RelatingPropertyDefinition
-                    if property_set.is_a('IfcPropertySet'):
-                        for prop in property_set.HasProperties:
-                            if prop.Name in ['Length', 'NominalLength']:
+                    property_definition = definition.RelatingPropertyDefinition
+                    
+                    # Check IfcElementQuantity (standard way to store quantities)
+                    if property_definition.is_a('IfcElementQuantity'):
+                        for quantity in property_definition.Quantities:
+                            if quantity.is_a('IfcQuantityLength'):
+                                # Common length quantity names
+                                if quantity.Name in ['Length', 'NominalLength', 'TotalLength', 'GrossLength', 'NetLength']:
+                                    if hasattr(quantity, 'LengthValue') and quantity.LengthValue:
+                                        return float(quantity.LengthValue)
+                    
+                    # Also check IfcPropertySet (alternative location for length data)
+                    elif property_definition.is_a('IfcPropertySet'):
+                        for prop in property_definition.HasProperties:
+                            if prop.Name in ['Length', 'NominalLength', 'TotalLength']:
                                 if hasattr(prop, 'NominalValue') and prop.NominalValue:
                                     return float(prop.NominalValue.wrappedValue)
         
-        # Try to calculate from geometry
-        if hasattr(element, 'Representation') and element.Representation:
-            # This is a simplified approach; full geometry calculation would be more complex
-            pass
+        # Note: Geometry-based calculation would require ifcopenshell.geom which is expensive
+        # For most IFC files, length should be available in quantities or properties
     except Exception:
         pass
     
@@ -130,13 +139,24 @@ def get_element_length(element):
 def get_element_area(element):
     """Get the area of an element."""
     try:
-        # Try to get from properties
+        # Try to get from element quantities (IfcElementQuantity) - most common for area data
         if hasattr(element, 'IsDefinedBy') and element.IsDefinedBy:
             for definition in element.IsDefinedBy:
                 if definition.is_a('IfcRelDefinesByProperties'):
-                    property_set = definition.RelatingPropertyDefinition
-                    if property_set.is_a('IfcPropertySet'):
-                        for prop in property_set.HasProperties:
+                    property_definition = definition.RelatingPropertyDefinition
+                    
+                    # Check IfcElementQuantity (standard way to store quantities)
+                    if property_definition.is_a('IfcElementQuantity'):
+                        for quantity in property_definition.Quantities:
+                            if quantity.is_a('IfcQuantityArea'):
+                                # Common area quantity names
+                                if quantity.Name in ['Area', 'NetArea', 'GrossArea', 'TotalArea', 'NetSideArea']:
+                                    if hasattr(quantity, 'AreaValue') and quantity.AreaValue:
+                                        return float(quantity.AreaValue)
+                    
+                    # Also check IfcPropertySet (alternative location for area data)
+                    elif property_definition.is_a('IfcPropertySet'):
+                        for prop in property_definition.HasProperties:
                             if prop.Name in ['Area', 'NetArea', 'GrossArea']:
                                 if hasattr(prop, 'NominalValue') and prop.NominalValue:
                                     return float(prop.NominalValue.wrappedValue)
