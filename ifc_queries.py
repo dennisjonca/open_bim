@@ -199,6 +199,40 @@ def get_total_length_by_type(ifc_file, element_type):
     return total_length
 
 
+def get_length_by_storey(ifc_file, element_type):
+    """Get total length of linear elements per storey."""
+    lengths = defaultdict(float)
+    elements = ifc_file.by_type(element_type)
+    
+    for element in elements:
+        storey = get_product_storey(element)
+        length = get_element_length(element)
+        lengths[storey] += length
+    
+    return dict(lengths)
+
+
+def get_length_by_system(ifc_file, element_type):
+    """Get total length of linear elements per MEP system."""
+    system_lengths = defaultdict(float)
+    
+    # Get all systems
+    all_systems = ifc_file.by_type("IfcSystem")
+    
+    for system in all_systems:
+        system_name = system.Name or system.LongName or f"System #{system.id()}"
+        
+        if hasattr(system, 'IsGroupedBy') and system.IsGroupedBy:
+            for rel in system.IsGroupedBy:
+                if hasattr(rel, 'RelatedObjects'):
+                    for obj in rel.RelatedObjects:
+                        if obj.is_a(element_type):
+                            length = get_element_length(obj)
+                            system_lengths[system_name] += length
+    
+    return dict(system_lengths)
+
+
 def get_total_area_by_type(ifc_file, element_type):
     """Get total area of elements of a specific type."""
     elements = ifc_file.by_type(element_type)

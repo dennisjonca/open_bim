@@ -110,7 +110,7 @@ def query_page():
     storeys = ifc_queries.get_all_storeys(ifc_file)
     element_types = ifc_queries.get_available_element_types(ifc_file)
     
-    return render_template('query.html', 
+    return render_template('query_simple.html', 
                          filename=session['ifc_filename'],
                          storeys=storeys,
                          element_types=element_types)
@@ -170,6 +170,26 @@ def execute_query_type(ifc_file, query_type, params):
             'title': f'Total Length of {element_type}',
             'value': round(length, 2),
             'unit': 'meters'
+        }
+    
+    elif query_type == 'length_by_storey':
+        element_type = params.get('element_type', 'IfcPipeSegment')
+        lengths = ifc_queries.get_length_by_storey(ifc_file, element_type)
+        return {
+            'type': 'table',
+            'title': f'{element_type} Length by Storey',
+            'headers': ['Storey', 'Length (m)'],
+            'data': [[k, round(v, 2)] for k, v in lengths.items()]
+        }
+    
+    elif query_type == 'length_by_system':
+        element_type = params.get('element_type', 'IfcPipeSegment')
+        lengths = ifc_queries.get_length_by_system(ifc_file, element_type)
+        return {
+            'type': 'table',
+            'title': f'{element_type} Length by System',
+            'headers': ['System', 'Length (m)'],
+            'data': [[k, round(v, 2)] for k, v in lengths.items()]
         }
     
     elif query_type == 'total_area':
