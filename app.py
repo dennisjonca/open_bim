@@ -144,11 +144,13 @@ def execute_query_type(ifc_file, query_type, params):
     if query_type == 'count_by_storey':
         element_type = params.get('element_type', 'IfcOutlet')
         counts = ifc_queries.count_by_type_and_storey(ifc_file, element_type)
+        # Sort by elevation (basement to top floor)
+        sorted_data = ifc_queries.sort_storey_data(ifc_file, counts)
         return {
             'type': 'table',
             'title': f'{element_type} Count by Storey',
             'headers': ['Storey', 'Count'],
-            'data': [[k, v] for k, v in counts.items()]
+            'data': sorted_data
         }
     
     elif query_type == 'count_total':
@@ -175,11 +177,14 @@ def execute_query_type(ifc_file, query_type, params):
     elif query_type == 'length_by_storey':
         element_type = params.get('element_type', 'IfcPipeSegment')
         lengths = ifc_queries.get_length_by_storey(ifc_file, element_type)
+        # Sort by elevation and round values
+        sorted_data = ifc_queries.sort_storey_data(ifc_file, lengths)
+        sorted_data = [[name, round(length, 2)] for name, length in sorted_data]
         return {
             'type': 'table',
             'title': f'{element_type} Length by Storey',
             'headers': ['Storey', 'Length (m)'],
-            'data': [[k, round(v, 2)] for k, v in lengths.items()]
+            'data': sorted_data
         }
     
     elif query_type == 'length_by_system':
@@ -275,11 +280,14 @@ def execute_query_type(ifc_file, query_type, params):
     
     elif query_type == 'net_area_per_storey':
         areas = ifc_queries.get_net_area_per_storey(ifc_file)
+        # Sort by elevation and round values
+        sorted_data = ifc_queries.sort_storey_data(ifc_file, areas)
+        sorted_data = [[name, round(area, 2)] for name, area in sorted_data]
         return {
             'type': 'table',
             'title': 'Net Area per Storey',
             'headers': ['Storey', 'Area (m²)'],
-            'data': [[k, round(v, 2)] for k, v in areas.items()]
+            'data': sorted_data
         }
     
     elif query_type == 'area_by_space_type':

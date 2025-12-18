@@ -539,13 +539,14 @@ def count_elements_filtered(ifc_file, element_type, storey_filter=None, space_ty
 # ==================== Helper Functions ====================
 
 def get_all_storeys(ifc_file):
-    """Get all building storeys in the IFC file."""
+    """Get all building storeys in the IFC file, sorted by elevation from lowest to highest."""
     storeys = []
     for storey in ifc_file.by_type("IfcBuildingStorey"):
         storey_name = _get_storey_name(storey)
         elevation = storey.Elevation if hasattr(storey, 'Elevation') and storey.Elevation is not None else None
         storeys.append((storey_name, elevation))
     
+    # Sort by elevation: None values last, then by elevation (including negative values for basements)
     storeys.sort(key=lambda x: (x[1] is None, x[1] if x[1] is not None else float('inf')))
     return storeys
 
@@ -559,3 +560,28 @@ def get_available_element_types(ifc_file):
         element_types.add(product.is_a())
     
     return sorted(list(element_types))
+
+
+def sort_storey_data(ifc_file, storey_dict):
+    """
+    Sort a dictionary with storey names as keys by elevation.
+    Returns a list of [storey_name, value] pairs sorted by elevation.
+    """
+    # Get all storeys with their elevations
+    storey_elevations = {}
+    for storey in ifc_file.by_type("IfcBuildingStorey"):
+        storey_name = _get_storey_name(storey)
+        elevation = storey.Elevation if hasattr(storey, 'Elevation') and storey.Elevation is not None else None
+        storey_elevations[storey_name] = elevation
+    
+    # Sort the dictionary items by elevation
+    sorted_items = []
+    for storey_name, value in storey_dict.items():
+        elevation = storey_elevations.get(storey_name, None)
+        sorted_items.append((storey_name, value, elevation))
+    
+    # Sort by elevation (None values last, then by elevation ascending)
+    sorted_items.sort(key=lambda x: (x[2] is None, x[2] if x[2] is not None else float('inf')))
+    
+    # Return as [storey_name, value] pairs
+    return [[item[0], item[1]] for item in sorted_items]
