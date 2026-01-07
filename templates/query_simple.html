@@ -247,7 +247,14 @@ const elementTranslations = {{ element_translations | tojson }};
 
 // Function to get German name for an IFC element
 function getGermanName(ifcName) {
-    return elementTranslations[ifcName] || ifcName.replace('Ifc', '');
+    if (elementTranslations[ifcName]) {
+        return elementTranslations[ifcName];
+    }
+    // Fallback: Remove 'Ifc' prefix only if it starts with 'Ifc'
+    if (ifcName.startsWith('Ifc')) {
+        return ifcName.substring(3);
+    }
+    return ifcName;
 }
 
 // Categorize elements

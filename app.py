@@ -124,7 +124,12 @@ IFC_ELEMENT_TRANSLATIONS = {
 
 def get_german_element_name(ifc_name):
     """Konvertiert IFC-Elementnamen in deutsche Bezeichnung."""
-    return IFC_ELEMENT_TRANSLATIONS.get(ifc_name, ifc_name.replace('Ifc', ''))
+    if ifc_name in IFC_ELEMENT_TRANSLATIONS:
+        return IFC_ELEMENT_TRANSLATIONS[ifc_name]
+    # Fallback: Remove 'Ifc' prefix only if it starts with 'Ifc'
+    if ifc_name.startswith('Ifc'):
+        return ifc_name[3:]
+    return ifc_name
 
 
 def allowed_file(filename):
