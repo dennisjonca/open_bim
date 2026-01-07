@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Upload IFC File - IFC Query Tool{% endblock %}
+
+{% block content %}
+<div class="upload-section">
+    <h2>Welcome to IFC Query Tool</h2>
+    <p class="subtitle">Upload your IFC file to start querying BIM data</p>
+
+    {% if has_file %}
+    <div class="current-file">
+        <h3>Current File</h3>
+        <p><strong>{{ filename }}</strong></p>
+        <a href="{{ url_for('query_page') }}" class="btn btn-primary">Go to Query Interface</a>
+        <a href="{{ url_for('clear_session') }}" class="btn btn-secondary">Upload New File</a>
+    </div>
+    {% else %}
+    <div class="upload-box">
+        <form method="POST" action="{{ url_for('upload_file') }}" enctype="multipart/form-data">
+            <div class="file-input-wrapper">
+                <input type="file" name="file" id="file" accept=".ifc,.IFC" required>
+                <label for="file" class="file-label">
+                    <span class="file-icon">📁</span>
+                    <span>Choose IFC File</span>
+                </label>
+            </div>
+            <button type="submit" class="btn btn-primary">Upload File</button>
+        </form>
+    </div>
+
+    <div class="info-section">
+        <h3>What can you do with this tool?</h3>
+        <div class="features-grid">
+            <div class="feature">
+                <h4>Quantity & Cost Estimation</h4>
+                <p>Count elements per storey or across the entire building</p>
+            </div>
+            <div class="feature">
+                <h4>Lengths & Volumes</h4>
+                <p>Calculate total lengths of pipes, ducts, and cables</p>
+            </div>
+            <div class="feature">
+                <h4>Element Context</h4>
+                <p>Find elements in specific spaces or host types</p>
+            </div>
+            <div class="feature">
+                <h4>System Analysis</h4>
+                <p>Analyze MEP systems and electrical circuits</p>
+            </div>
+            <div class="feature">
+                <h4>Space & Usage</h4>
+                <p>Calculate areas and analyze space usage</p>
+            </div>
+            <div class="feature">
+                <h4>Compliance Checking</h4>
+                <p>Verify elements are in required locations</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

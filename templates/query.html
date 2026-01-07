@@ -1,0 +1,394 @@
+{% extends "base.html" %}
+
+{% block title %}Query IFC Data{% endblock %}
+
+{% block content %}
+<div class="query-page">
+    <div class="page-header">
+        <h2>Query IFC Data</h2>
+        <p class="filename">File: <strong>{{ filename }}</strong></p>
+    </div>
+
+    <div class="query-interface">
+        <div class="query-sidebar">
+            <h3>Select Query Category</h3>
+            <div class="category-tabs">
+                <button class="tab-button active" data-category="quantity">1. Quantity & Cost</button>
+                <button class="tab-button" data-category="lengths">2. Lengths & Volumes</button>
+                <button class="tab-button" data-category="context">3. Element Context</button>
+                <button class="tab-button" data-category="systems">4. System Analysis</button>
+                <button class="tab-button" data-category="space">5. Space & Usage</button>
+                <button class="tab-button" data-category="compliance">6. Compliance</button>
+                <button class="tab-button" data-category="planning">7. Planning</button>
+                <button class="tab-button" data-category="maintenance">8. Maintenance</button>
+                <button class="tab-button" data-category="compound">9. Compound Queries</button>
+            </div>
+        </div>
+
+        <div class="query-content">
+            <!-- Category 1: Quantity & Cost Estimation -->
+            <div class="category-panel active" data-category="quantity">
+                <h3>Quantity & Cost Estimation</h3>
+                <p class="category-description">Count elements per storey or across the entire building</p>
+
+                <div class="query-card">
+                    <h4>Count by Storey</h4>
+                    <p>How many elements are on each floor?</p>
+                    <form class="query-form" data-query="count_by_storey">
+                        <div class="form-group">
+                            <label>Element Type:</label>
+                            <select name="element_type" required>
+                                <option value="IfcOutlet">Electrical Outlets</option>
+                                <option value="IfcSwitchingDevice">Light Switches</option>
+                                <option value="IfcLightFixture">Luminaires</option>
+                                <option value="IfcSanitaryTerminal">Sanitary Fixtures</option>
+                                <option value="IfcSensor">Fire Detectors/Sensors</option>
+                                <option value="IfcDoor">Doors</option>
+                                <option value="IfcWindow">Windows</option>
+                                <option value="IfcSpaceHeater">Radiators</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Execute Query</button>
+                    </form>
+                </div>
+
+                <div class="query-card">
+                    <h4>Total Count</h4>
+                    <p>How many elements are in the entire building?</p>
+                    <form class="query-form" data-query="count_total">
+                        <div class="form-group">
+                            <label>Element Type:</label>
+                            <select name="element_type" required>
+                                <option value="IfcDoor">Doors</option>
+                                <option value="IfcWindow">Windows</option>
+                                <option value="IfcOutlet">Electrical Outlets</option>
+                                <option value="IfcElectricDistributionBoard">Distribution Boards</option>
+                                <option value="IfcSpaceHeater">Radiators</option>
+                                <option value="IfcLightFixture">Luminaires</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Execute Query</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Category 2: Lengths & Volumes -->
+            <div class="category-panel" data-category="lengths">
+                <h3>Lengths & Volumes</h3>
+                <p class="category-description">Calculate total lengths and areas for materials and labor planning</p>
+
+                <div class="query-card">
+                    <h4>Total Length</h4>
+                    <p>What is the total length of linear elements?</p>
+                    <form class="query-form" data-query="total_length">
+                        <div class="form-group">
+                            <label>Element Type:</label>
+                            <select name="element_type" required>
+                                <option value="IfcCableSegment">Electrical Conduits</option>
+                                <option value="IfcCableCarrierSegment">Cable Trays</option>
+                                <option value="IfcPipeSegment">Piping</option>
+                                <option value="IfcDuctSegment">Ventilation Ducts</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Execute Query</button>
+                    </form>
+                </div>
+
+                <div class="query-card">
+                    <h4>Total Area</h4>
+                    <p>What is the total area of surface elements?</p>
+                    <form class="query-form" data-query="total_area">
+                        <div class="form-group">
+                            <label>Element Type:</label>
+                            <select name="element_type" required>
+                                <option value="IfcCovering">Suspended Ceilings</option>
+                                <option value="IfcSlab">Slabs</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Execute Query</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Category 3: Element Context -->
+            <div class="category-panel" data-category="context">
+                <h3>Element Context Questions</h3>
+                <p class="category-description">Combine objects with where they are installed</p>
+
+                <div class="query-card">
+                    <h4>Elements by Host Type</h4>
+                    <p>How many elements are installed in specific host types?</p>
+                    <form class="query-form" data-query="elements_by_host">
+                        <div class="form-group">
+                            <label>Element Type:</label>
+                            <select name="element_type" required>
+                                <option value="IfcDoor">Doors</option>
+                                <option value="IfcWindow">Windows</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Host Type:</label>
+                            <select name="host_type" required>
+                                <option value="IfcWall">Walls</option>
+                                <option value="IfcSlab">Slabs</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Execute Query</button>
+                    </form>
+                </div>
+
+                <div class="query-card">
+                    <h4>Elements in Space Type</h4>
+                    <p>How many elements are in specific space types?</p>
+                    <form class="query-form" data-query="elements_in_space_type">
+                        <div class="form-group">
+                            <label>Element Type:</label>
+                            <select name="element_type" required>
+                                <option value="IfcOutlet">Outlets</option>
+                                <option value="IfcLightFixture">Luminaires</option>
+                                <option value="IfcSwitchingDevice">Switches</option>
+                                <option value="IfcSanitaryTerminal">Sanitary Fixtures</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Space Type (name contains):</label>
+                            <input type="text" name="space_type" placeholder="e.g., Office, Bathroom" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Execute Query</button>
+                    </form>
+                </div>
+
+                <div class="query-card">
+                    <h4>Elements per Space</h4>
+                    <p>Show count of elements in each individual space</p>
+                    <form class="query-form" data-query="elements_per_space">
+                        <div class="form-group">
+                            <label>Element Type:</label>
+                            <select name="element_type" required>
+                                <option value="IfcSwitchingDevice">Switches</option>
+                                <option value="IfcOutlet">Outlets</option>
+                                <option value="IfcLightFixture">Luminaires</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Execute Query</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Category 4: System Analysis -->
+            <div class="category-panel" data-category="systems">
+                <h3>System-based Questions</h3>
+                <p class="category-description">Analyze MEP systems, electrical circuits, and connections</p>
+
+                <div class="query-card">
+                    <h4>Elements by System</h4>
+                    <p>Show all systems and their connected elements</p>
+                    <form class="query-form" data-query="elements_by_system">
+                        <div class="form-group">
+                            <label>Filter by System Name (optional):</label>
+                            <input type="text" name="system_name" placeholder="Leave empty for all systems">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Execute Query</button>
+                    </form>
+                </div>
+
+                <div class="query-card">
+                    <h4>Elements per Circuit</h4>
+                    <p>How many elements are connected to each electrical circuit?</p>
+                    <form class="query-form" data-query="elements_per_circuit">
+                        <div class="form-group">
+                            <label>Element Type:</label>
+                            <select name="element_type" required>
+                                <option value="IfcOutlet">Outlets</option>
+                                <option value="IfcLightFixture">Luminaires</option>
+                                <option value="IfcSwitchingDevice">Switches</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Execute Query</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Category 5: Space & Usage Analysis -->
+            <div class="category-panel" data-category="space">
+                <h3>Space & Usage Analysis</h3>
+                <p class="category-description">Analyze spaces and their usage patterns</p>
+
+                <div class="query-card">
+                    <h4>Count Rooms</h4>
+                    <p>How many rooms are in the building?</p>
+                    <form class="query-form" data-query="count_rooms">
+                        <button type="submit" class="btn btn-primary">Execute Query</button>
+                    </form>
+                </div>
+
+                <div class="query-card">
+                    <h4>Net Area per Storey</h4>
+                    <p>What is the total net area per floor?</p>
+                    <form class="query-form" data-query="net_area_per_storey">
+                        <button type="submit" class="btn btn-primary">Execute Query</button>
+                    </form>
+                </div>
+
+                <div class="query-card">
+                    <h4>Area by Space Type</h4>
+                    <p>Total area of specific space types</p>
+                    <form class="query-form" data-query="area_by_space_type">
+                        <div class="form-group">
+                            <label>Space Type (name contains):</label>
+                            <input type="text" name="space_type" placeholder="e.g., Office, Bathroom" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Execute Query</button>
+                    </form>
+                </div>
+
+                <div class="query-card">
+                    <h4>Elements per Area</h4>
+                    <p>How many elements per square meter?</p>
+                    <form class="query-form" data-query="elements_per_area">
+                        <div class="form-group">
+                            <label>Element Type:</label>
+                            <select name="element_type" required>
+                                <option value="IfcOutlet">Outlets</option>
+                                <option value="IfcLightFixture">Luminaires</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Space Type (name contains):</label>
+                            <input type="text" name="space_type" placeholder="e.g., Office" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Execute Query</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Category 6: Compliance -->
+            <div class="category-panel" data-category="compliance">
+                <h3>Compliance & Checking</h3>
+                <p class="category-description">Verify elements are installed in required locations</p>
+
+                <div class="query-card">
+                    <h4>Check Elements in All Spaces</h4>
+                    <p>Are elements present in all spaces of a certain type?</p>
+                    <form class="query-form" data-query="check_elements_in_spaces">
+                        <div class="form-group">
+                            <label>Element Type:</label>
+                            <select name="element_type" required>
+                                <option value="IfcOutlet">Outlets</option>
+                                <option value="IfcSwitchingDevice">Switches</option>
+                                <option value="IfcSensor">Smoke Detectors</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Space Type (name contains):</label>
+                            <input type="text" name="space_type" placeholder="e.g., Office, Room" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Execute Query</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Category 7: Planning -->
+            <div class="category-panel" data-category="planning">
+                <h3>Installation & Execution Planning</h3>
+                <p class="category-description">Coordinate on-site installation work</p>
+
+                <div class="query-card">
+                    <h4>Elements per Floor</h4>
+                    <p>How many elements need installation per floor?</p>
+                    <form class="query-form" data-query="elements_per_floor">
+                        <button type="submit" class="btn btn-primary">Execute Query</button>
+                    </form>
+                </div>
+
+                <div class="query-card">
+                    <h4>Highest Density Floor</h4>
+                    <p>Which floor has the most elements?</p>
+                    <form class="query-form" data-query="highest_density_floor">
+                        <div class="form-group">
+                            <label>Element Type (optional):</label>
+                            <select name="element_type">
+                                <option value="">All Elements</option>
+                                <option value="IfcOutlet">Outlets</option>
+                                <option value="IfcLightFixture">Luminaires</option>
+                                <option value="IfcSanitaryTerminal">Sanitary Fixtures</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Execute Query</button>
+                    </form>
+                </div>
+
+                <div class="query-card">
+                    <h4>Rooms with Most Devices</h4>
+                    <p>Which rooms have the highest device count?</p>
+                    <form class="query-form" data-query="rooms_with_most_devices">
+                        <button type="submit" class="btn btn-primary">Execute Query</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Category 8: Maintenance -->
+            <div class="category-panel" data-category="maintenance">
+                <h3>Maintenance & Handover</h3>
+                <p class="category-description">Information for maintenance and facility management</p>
+
+                <div class="query-card">
+                    <h4>Count Maintainable Devices</h4>
+                    <p>How many devices require maintenance?</p>
+                    <form class="query-form" data-query="count_maintainable">
+                        <button type="submit" class="btn btn-primary">Execute Query</button>
+                    </form>
+                </div>
+
+                <div class="query-card">
+                    <h4>Distribution Board Locations</h4>
+                    <p>Where are all electrical distribution boards located?</p>
+                    <form class="query-form" data-query="locate_distribution_boards">
+                        <button type="submit" class="btn btn-primary">Execute Query</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Category 9: Compound Queries -->
+            <div class="category-panel" data-category="compound">
+                <h3>High-value Compound Questions</h3>
+                <p class="category-description">Complex queries combining multiple filters</p>
+
+                <div class="query-card">
+                    <h4>Filtered Element Count</h4>
+                    <p>Count elements with multiple filters (e.g., outlets in offices on first floor)</p>
+                    <form class="query-form" data-query="filtered_count">
+                        <div class="form-group">
+                            <label>Element Type:</label>
+                            <select name="element_type" required>
+                                <option value="IfcOutlet">Outlets</option>
+                                <option value="IfcLightFixture">Luminaires</option>
+                                <option value="IfcSwitchingDevice">Switches</option>
+                                <option value="IfcSanitaryTerminal">Sanitary Fixtures</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Storey Filter (name contains, optional):</label>
+                            <input type="text" name="storey_filter" placeholder="e.g., First Floor, Ground">
+                        </div>
+                        <div class="form-group">
+                            <label>Space Type Filter (name contains, optional):</label>
+                            <input type="text" name="space_type_filter" placeholder="e.g., Office, Kitchen">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Execute Query</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="results-section" id="results" style="display: none;">
+        <h3>Query Results</h3>
+        <div id="results-content"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/query.js') }}"></script>
+{% endblock %}

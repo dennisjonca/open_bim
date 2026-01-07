@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+
+{% block title %}Query IFC Data{% endblock %}
+
+{% block content %}
+<div class="query-page">
+    <div class="page-header">
+        <h2>Query IFC Data</h2>
+        <p class="filename">File: <strong>{{ filename }}</strong></p>
+    </div>
+
+    <div class="query-interface">
+        <div class="query-sidebar">
+            <h3>View Mode</h3>
+            <div class="view-mode-tabs">
+                <button class="view-mode-button active" data-view="storey">
+                    By Storey
+                </button>
+                <button class="view-mode-button" data-view="mep">
+                    By MEP
+                </button>
+            </div>
+
+            <h3 style="margin-top: 2rem;">Query Type</h3>
+            <div class="category-tabs">
+                <button class="tab-button active" data-category="quantity">
+                    Count & Quantity
+                </button>
+                <button class="tab-button" data-category="lengths">
+                    Lengths & Volumes
+                </button>
+                <button class="tab-button" data-category="spaces">
+                    Spaces & Rooms
+                </button>
+            </div>
+        </div>
+
+        <div class="query-content">
+            <!-- Quantity & Counting -->
+            <div class="category-panel active" data-category="quantity">
+                <h3>Count & Quantity</h3>
+                <p class="category-description">Count elements in your building</p>
+
+                <!-- By Storey View -->
+                <div class="view-panel active" data-view="storey">
+                    <div class="query-card">
+                        <h4>Count Elements by Storey</h4>
+                        <form class="query-form" data-query="count_by_storey">
+                            <div class="form-group">
+                                <label>Element Type:</label>
+                                <select name="element_type" id="quantity_storey_select" required>
+                                    <option value="">-- Select Element Type --</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Execute Query</button>
+                        </form>
+                    </div>
+
+                    <div class="query-card">
+                        <h4>Total Count</h4>
+                        <form class="query-form" data-query="count_total">
+                            <div class="form-group">
+                                <label>Element Type:</label>
+                                <select name="element_type" id="quantity_total_select" required>
+                                    <option value="">-- Select Element Type --</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Execute Query</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- By MEP View -->
+                <div class="view-panel" data-view="mep">
+                    <div class="query-card">
+                        <h4>MEP Elements by System</h4>
+                        <form class="query-form" data-query="elements_by_system">
+                            <div class="form-group">
+                                <label>Filter by System Name (optional):</label>
+                                <input type="text" name="system_name" placeholder="Leave empty for all systems">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Execute Query</button>
+                        </form>
+                    </div>
+
+                    <div class="query-card">
+                        <h4>Count by MEP Element Type</h4>
+                        <form class="query-form" data-query="count_total">
+                            <div class="form-group">
+                                <label>MEP Element Type:</label>
+                                <select name="element_type" id="quantity_mep_select" required>
+                                    <option value="">-- Select MEP Element Type --</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Execute Query</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lengths & Volumes -->
+            <div class="category-panel" data-category="lengths">
+                <h3>Lengths & Volumes</h3>
+                <p class="category-description">Calculate total lengths and areas</p>
+
+                <!-- By Storey View -->
+                <div class="view-panel active" data-view="storey">
+                    <div class="query-card">
+                        <h4>Total Length by Storey</h4>
+                        <form class="query-form" data-query="length_by_storey">
+                            <div class="form-group">
+                                <label>Linear Element Type:</label>
+                                <select name="element_type" id="length_storey_select" required>
+                                    <option value="">-- Select Element Type --</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Execute Query</button>
+                        </form>
+                    </div>
+
+                    <div class="query-card">
+                        <h4>Total Length (Building-wide)</h4>
+                        <form class="query-form" data-query="total_length">
+                            <div class="form-group">
+                                <label>Linear Element Type:</label>
+                                <select name="element_type" id="length_total_select" required>
+                                    <option value="">-- Select Element Type --</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Execute Query</button>
+                        </form>
+                    </div>
+
+                    <div class="query-card">
+                        <h4>Total Area</h4>
+                        <form class="query-form" data-query="total_area">
+                            <div class="form-group">
+                                <label>Surface Element Type:</label>
+                                <select name="element_type" id="area_select" required>
+                                    <option value="">-- Select Element Type --</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Execute Query</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- By MEP View -->
+                <div class="view-panel" data-view="mep">
+                    <div class="query-card">
+                        <h4>MEP Total Lengths by System</h4>
+                        <form class="query-form" data-query="length_by_system">
+                            <div class="form-group">
+                                <label>MEP Linear Element Type:</label>
+                                <select name="element_type" id="length_mep_select" required>
+                                    <option value="">-- Select MEP Element Type --</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Execute Query</button>
+                        </form>
+                    </div>
+
+                    <div class="query-card">
+                        <h4>Total Length by MEP Type</h4>
+                        <form class="query-form" data-query="total_length">
+                            <div class="form-group">
+                                <label>MEP Linear Element Type:</label>
+                                <select name="element_type" id="length_mep_total_select" required>
+                                    <option value="">-- Select MEP Element Type --</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Execute Query</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Spaces & Rooms -->
+            <div class="category-panel" data-category="spaces">
+                <h3>Spaces & Rooms</h3>
+                <p class="category-description">List and analyze spaces in your building</p>
+
+                <!-- By Storey View -->
+                <div class="view-panel active" data-view="storey">
+                    <div class="query-card">
+                        <h4>Count All Rooms/Spaces</h4>
+                        <form class="query-form" data-query="count_rooms">
+                            <button type="submit" class="btn btn-primary">Execute Query</button>
+                        </form>
+                    </div>
+
+                    <div class="query-card">
+                        <h4>Net Area per Storey</h4>
+                        <form class="query-form" data-query="net_area_per_storey">
+                            <button type="submit" class="btn btn-primary">Execute Query</button>
+                        </form>
+                    </div>
+
+                    <div class="query-card">
+                        <h4>Area by Space Type</h4>
+                        <form class="query-form" data-query="area_by_space_type">
+                            <div class="form-group">
+                                <label>Space Type (name contains):</label>
+                                <input type="text" name="space_type" placeholder="e.g., Office, Bathroom" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Execute Query</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- By MEP View -->
+                <div class="view-panel" data-view="mep">
+                    <div class="query-card">
+                        <h4>Spaces with MEP Elements</h4>
+                        <form class="query-form" data-query="elements_per_space">
+                            <div class="form-group">
+                                <label>MEP Element Type:</label>
+                                <select name="element_type" id="space_mep_select" required>
+                                    <option value="">-- Select MEP Element Type --</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Execute Query</button>
+                        </form>
+                    </div>
+
+                    <div class="query-card">
+                        <h4>Count Rooms/Spaces</h4>
+                        <form class="query-form" data-query="count_rooms">
+                            <button type="submit" class="btn btn-primary">Execute Query</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="results-section" id="results" style="display: none;">
+        <h3>Query Results</h3>
+        <div id="results-content"></div>
+    </div>
+</div>
+
+<script>
+// Available element types from server
+const availableElements = {{ element_types | tojson }};
+
+// Categorize elements
+const countableElements = [];
+const linearElements = [];
+const areaElements = [];
+const mepElements = [];
+
+availableElements.forEach(elem => {
+    // Add all to countable
+    countableElements.push(elem);
+    
+    // Check if linear (pipes, ducts, cables)
+    if (elem.includes('Segment') || elem.includes('Conduit')) {
+        linearElements.push(elem);
+    }
+    
+    // Check if area (slabs, coverings)
+    if (elem.includes('Slab') || elem.includes('Covering') || elem.includes('Roof')) {
+        areaElements.push(elem);
+    }
+    
+    // Check if MEP
+    if (elem.includes('Pipe') || elem.includes('Duct') || elem.includes('Cable') || 
+        elem.includes('Outlet') || elem.includes('Switch') || elem.includes('Light') ||
+        elem.includes('Sensor') || elem.includes('Valve') || elem.includes('Pump') ||
+        elem.includes('Fan') || elem.includes('Terminal') || elem.includes('Sanitary') ||
+        elem.includes('Distribution') || elem.includes('Electric')) {
+        mepElements.push(elem);
+    }
+});
+
+// Populate dropdowns
+function populateSelect(selectId, elements) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    
+    // Clear existing options except first
+    while (select.options.length > 1) {
+        select.remove(1);
+    }
+    
+    // Add available elements
+    elements.forEach(elem => {
+        const option = document.createElement('option');
+        option.value = elem;
+        option.textContent = elem.replace('Ifc', '');
+        select.appendChild(option);
+    });
+}
+
+// Populate all selects on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Quantity selects
+    populateSelect('quantity_storey_select', countableElements);
+    populateSelect('quantity_total_select', countableElements);
+    populateSelect('quantity_mep_select', mepElements);
+    
+    // Length selects
+    populateSelect('length_storey_select', linearElements);
+    populateSelect('length_total_select', linearElements);
+    populateSelect('length_mep_select', mepElements.filter(e => e.includes('Segment') || e.includes('Conduit')));
+    populateSelect('length_mep_total_select', mepElements.filter(e => e.includes('Segment') || e.includes('Conduit')));
+    
+    // Area selects
+    populateSelect('area_select', areaElements);
+    
+    // Space MEP select
+    populateSelect('space_mep_select', mepElements);
+});
+</script>
+<script src="{{ url_for('static', filename='js/query_simple.js') }}"></script>
+{% endblock %}
