@@ -33,7 +33,7 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 
 def allowed_file(filename):
-    """Prüfen, ob die Datei eine erlaubte Erweiterung hat."""
+    """Prüfen, ob die Datei eine zulässige Erweiterung hat."""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
