@@ -31,6 +31,101 @@ ALLOWED_EXTENSIONS = {'ifc', 'IFC'}
 # Ensure upload folder exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+# German translations for IFC element types
+IFC_ELEMENT_TRANSLATIONS = {
+    # Structural Elements
+    'IfcWall': 'Wand',
+    'IfcWallStandardCase': 'Standardwand',
+    'IfcColumn': 'Stütze',
+    'IfcBeam': 'Träger',
+    'IfcSlab': 'Decke',
+    'IfcRoof': 'Dach',
+    'IfcStair': 'Treppe',
+    'IfcRailing': 'Geländer',
+    'IfcFooting': 'Fundament',
+    'IfcPile': 'Pfahl',
+    
+    # Doors and Windows
+    'IfcDoor': 'Tür',
+    'IfcWindow': 'Fenster',
+    'IfcCurtainWall': 'Vorhangfassade',
+    
+    # Electrical
+    'IfcOutlet': 'Steckdose',
+    'IfcSwitchingDevice': 'Schalter',
+    'IfcLightFixture': 'Leuchte',
+    'IfcLamp': 'Lampe',
+    'IfcElectricDistributionBoard': 'Verteiler',
+    'IfcElectricAppliance': 'Elektrisches Gerät',
+    'IfcCableSegment': 'Kabelsegment',
+    'IfcCableCarrierSegment': 'Kabeltrasse',
+    'IfcCableFitting': 'Kabelverschraubung',
+    
+    # Plumbing and HVAC
+    'IfcPipeSegment': 'Rohrsegment',
+    'IfcPipeFitting': 'Rohrverbindung',
+    'IfcValve': 'Ventil',
+    'IfcPump': 'Pumpe',
+    'IfcDuctSegment': 'Lüftungskanalsegment',
+    'IfcDuctFitting': 'Lüftungskanalverbindung',
+    'IfcAirTerminal': 'Luftauslass',
+    'IfcFan': 'Ventilator',
+    'IfcDamper': 'Klappe',
+    'IfcBoiler': 'Kessel',
+    'IfcChiller': 'Kühler',
+    'IfcHeatExchanger': 'Wärmetauscher',
+    'IfcTank': 'Tank',
+    
+    # Sanitary
+    'IfcSanitaryTerminal': 'Sanitärobjekt',
+    'IfcWasteTerminal': 'Abfluss',
+    
+    # Sensors and Controls
+    'IfcSensor': 'Sensor',
+    'IfcActuator': 'Aktor',
+    'IfcAlarm': 'Alarm',
+    'IfcController': 'Steuergerät',
+    'IfcFlowInstrument': 'Messgerät',
+    
+    # Heating and Cooling
+    'IfcSpaceHeater': 'Heizkörper',
+    'IfcCooledBeam': 'Kühldecke',
+    'IfcCoolingTower': 'Kühlturm',
+    'IfcEvaporator': 'Verdampfer',
+    'IfcCondenser': 'Kondensator',
+    
+    # Fire Protection
+    'IfcFireSuppressionTerminal': 'Feuerlöscher',
+    'IfcSprinkler': 'Sprinkler',
+    
+    # Furniture and Equipment
+    'IfcFurniture': 'Möbel',
+    'IfcSystemFurnitureElement': 'Systemmöbel',
+    'IfcMedicalDevice': 'Medizinisches Gerät',
+    
+    # Space and Building
+    'IfcSpace': 'Raum',
+    'IfcBuildingStorey': 'Geschoss',
+    'IfcBuilding': 'Gebäude',
+    'IfcSite': 'Grundstück',
+    
+    # Covering
+    'IfcCovering': 'Belag',
+    'IfcCeiling': 'Deckenverkleidung',
+    'IfcFlooring': 'Bodenbelag',
+    'IfcRoofing': 'Dachdeckung',
+    
+    # Other
+    'IfcTransportElement': 'Transportelement',
+    'IfcPlate': 'Platte',
+    'IfcMember': 'Bauteil',
+    'IfcBuildingElementProxy': 'Proxy-Element',
+}
+
+def get_german_element_name(ifc_name):
+    """Konvertiert IFC-Elementnamen in deutsche Bezeichnung."""
+    return IFC_ELEMENT_TRANSLATIONS.get(ifc_name, ifc_name.replace('Ifc', ''))
+
 
 def allowed_file(filename):
     """Prüfen, ob die Datei eine zulässige Erweiterung hat."""
@@ -113,7 +208,8 @@ def query_page():
     return render_template('query_simple.html', 
                          filename=session['ifc_filename'],
                          storeys=storeys,
-                         element_types=element_types)
+                         element_types=element_types,
+                         element_translations=IFC_ELEMENT_TRANSLATIONS)
 
 
 @app.route('/api/query', methods=['POST'])
@@ -146,9 +242,10 @@ def execute_query_type(ifc_file, query_type, params):
         counts = ifc_queries.count_by_type_and_storey(ifc_file, element_type)
         # Nach Höhe sortieren (Keller bis Dachgeschoss)
         sorted_data = ifc_queries.sort_storey_data(ifc_file, counts)
+        german_name = get_german_element_name(element_type)
         return {
             'type': 'table',
-            'title': f'{element_type} Anzahl nach Geschoss',
+            'title': f'{german_name} Anzahl nach Geschoss',
             'headers': ['Geschoss', 'Anzahl'],
             'data': sorted_data
         }
@@ -156,9 +253,10 @@ def execute_query_type(ifc_file, query_type, params):
     elif query_type == 'count_total':
         element_type = params.get('element_type', 'IfcDoor')
         count = ifc_queries.count_by_type_total(ifc_file, element_type)
+        german_name = get_german_element_name(element_type)
         return {
             'type': 'value',
-            'title': f'Gesamt {element_type} Anzahl',
+            'title': f'Gesamt {german_name} Anzahl',
             'value': count,
             'unit': 'Elemente'
         }
@@ -167,9 +265,10 @@ def execute_query_type(ifc_file, query_type, params):
     elif query_type == 'total_length':
         element_type = params.get('element_type', 'IfcPipeSegment')
         length = ifc_queries.get_total_length_by_type(ifc_file, element_type)
+        german_name = get_german_element_name(element_type)
         return {
             'type': 'value',
-            'title': f'Gesamtlänge von {element_type}',
+            'title': f'Gesamtlänge von {german_name}',
             'value': round(length, 2),
             'unit': 'Meter'
         }
@@ -180,9 +279,10 @@ def execute_query_type(ifc_file, query_type, params):
         # Nach Höhe sortieren und Werte runden
         sorted_data = ifc_queries.sort_storey_data(ifc_file, lengths)
         sorted_data = [[name, round(length, 2)] for name, length in sorted_data]
+        german_name = get_german_element_name(element_type)
         return {
             'type': 'table',
-            'title': f'{element_type} Länge nach Geschoss',
+            'title': f'{german_name} Länge nach Geschoss',
             'headers': ['Geschoss', 'Länge (m)'],
             'data': sorted_data
         }
@@ -190,9 +290,10 @@ def execute_query_type(ifc_file, query_type, params):
     elif query_type == 'length_by_system':
         element_type = params.get('element_type', 'IfcPipeSegment')
         lengths = ifc_queries.get_length_by_system(ifc_file, element_type)
+        german_name = get_german_element_name(element_type)
         return {
             'type': 'table',
-            'title': f'{element_type} Länge nach System',
+            'title': f'{german_name} Länge nach System',
             'headers': ['System', 'Länge (m)'],
             'data': [[k, round(v, 2)] for k, v in lengths.items()]
         }
@@ -200,9 +301,10 @@ def execute_query_type(ifc_file, query_type, params):
     elif query_type == 'total_area':
         element_type = params.get('element_type', 'IfcCovering')
         area = ifc_queries.get_total_area_by_type(ifc_file, element_type)
+        german_name = get_german_element_name(element_type)
         return {
             'type': 'value',
-            'title': f'Gesamtfläche von {element_type}',
+            'title': f'Gesamtfläche von {german_name}',
             'value': round(area, 2),
             'unit': 'm²'
         }
@@ -212,9 +314,11 @@ def execute_query_type(ifc_file, query_type, params):
         element_type = params.get('element_type', 'IfcDoor')
         host_type = params.get('host_type', 'IfcWall')
         count = ifc_queries.count_elements_by_host_type(ifc_file, element_type, host_type)
+        german_element = get_german_element_name(element_type)
+        german_host = get_german_element_name(host_type)
         return {
             'type': 'value',
-            'title': f'{element_type} in {host_type}',
+            'title': f'{german_element} in {german_host}',
             'value': count,
             'unit': 'Elemente'
         }
@@ -223,9 +327,10 @@ def execute_query_type(ifc_file, query_type, params):
         element_type = params.get('element_type', 'IfcOutlet')
         space_type = params.get('space_type', 'Office')
         count = ifc_queries.count_elements_in_space_type(ifc_file, element_type, space_type)
+        german_name = get_german_element_name(element_type)
         return {
             'type': 'value',
-            'title': f'{element_type} in {space_type} Räumen',
+            'title': f'{german_name} in {space_type} Räumen',
             'value': count,
             'unit': 'Elemente'
         }
@@ -233,9 +338,10 @@ def execute_query_type(ifc_file, query_type, params):
     elif query_type == 'elements_per_space':
         element_type = params.get('element_type', 'IfcSwitchingDevice')
         counts = ifc_queries.count_elements_per_space(ifc_file, element_type)
+        german_name = get_german_element_name(element_type)
         return {
             'type': 'table',
-            'title': f'{element_type} pro Raum',
+            'title': f'{german_name} pro Raum',
             'headers': ['Raum', 'Anzahl'],
             'data': sorted([[k, v] for k, v in counts.items()], key=lambda x: x[1], reverse=True)
         }
@@ -245,11 +351,12 @@ def execute_query_type(ifc_file, query_type, params):
         system_name = params.get('system_name', '')
         systems = ifc_queries.get_elements_by_system(ifc_file, system_name if system_name else None)
         
-        # Für Anzeige flach machen
+        # Für Anzeige flach machen und Elementtypen übersetzen
         data = []
         for sys_name, elements in systems.items():
             for elem_type, count in elements.items():
-                data.append([sys_name, elem_type, count])
+                german_elem = get_german_element_name(elem_type)
+                data.append([sys_name, german_elem, count])
         
         return {
             'type': 'table',
@@ -261,9 +368,10 @@ def execute_query_type(ifc_file, query_type, params):
     elif query_type == 'elements_per_circuit':
         element_type = params.get('element_type', 'IfcOutlet')
         circuits = ifc_queries.count_elements_per_circuit(ifc_file, element_type)
+        german_name = get_german_element_name(element_type)
         return {
             'type': 'table',
-            'title': f'{element_type} pro Stromkreis',
+            'title': f'{german_name} pro Stromkreis',
             'headers': ['Stromkreis', 'Anzahl'],
             'data': [[k, v] for k, v in circuits.items()]
         }
@@ -304,9 +412,10 @@ def execute_query_type(ifc_file, query_type, params):
         element_type = params.get('element_type', 'IfcOutlet')
         space_type = params.get('space_type', 'Office')
         density = ifc_queries.count_elements_per_area(ifc_file, element_type, space_type)
+        german_name = get_german_element_name(element_type)
         return {
             'type': 'value',
-            'title': f'{element_type} pro m² in {space_type}',
+            'title': f'{german_name} pro m² in {space_type}',
             'value': round(density, 3),
             'unit': 'Elemente/m²'
         }
@@ -316,18 +425,19 @@ def execute_query_type(ifc_file, query_type, params):
         element_type = params.get('element_type', 'IfcOutlet')
         space_type = params.get('space_type', 'Office')
         result = ifc_queries.check_elements_in_all_spaces(ifc_file, element_type, space_type)
+        german_name = get_german_element_name(element_type)
         
         status = "✓ Alle Räume haben Elemente" if result['all_have'] else "✗ Einigen Räumen fehlen Elemente"
         
         return {
             'type': 'compliance',
-            'title': f'Prüfung: {element_type} in allen {space_type} Räumen',
+            'title': f'Prüfung: {german_name} in allen {space_type} Räumen',
             'status': status,
             'passed': result['all_have'],
             'details': [
                 f"Gesamt {space_type} Räume: {result['total_spaces']}",
-                f"Räume mit {element_type}: {result['spaces_with_elements']}",
-                f"Räume ohne {element_type}: {result['missing_count']}"
+                f"Räume mit {german_name}: {result['spaces_with_elements']}",
+                f"Räume ohne {german_name}: {result['missing_count']}"
             ]
         }
     
@@ -347,7 +457,8 @@ def execute_query_type(ifc_file, query_type, params):
         
         title = f'Geschoss mit höchster Dichte'
         if element_type:
-            title += f' ({element_type})'
+            german_name = get_german_element_name(element_type)
+            title += f' ({german_name})'
         
         return {
             'type': 'value',
@@ -396,6 +507,7 @@ def execute_query_type(ifc_file, query_type, params):
             ifc_file, element_type, storey_filter, space_type_filter
         )
         
+        german_name = get_german_element_name(element_type)
         filters = []
         if storey_filter:
             filters.append(f"auf {storey_filter}")
@@ -406,7 +518,7 @@ def execute_query_type(ifc_file, query_type, params):
         
         return {
             'type': 'value',
-            'title': f'{element_type} {filter_str}',
+            'title': f'{german_name} {filter_str}',
             'value': count,
             'unit': 'Elemente'
         }
