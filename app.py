@@ -44,12 +44,12 @@ IFC_ELEMENT_TRANSLATIONS = {
     'IfcRailing': 'Geländer',
     'IfcFooting': 'Fundament',
     'IfcPile': 'Pfahl',
-    
+
     # Doors and Windows
     'IfcDoor': 'Tür',
     'IfcWindow': 'Fenster',
     'IfcCurtainWall': 'Vorhangfassade',
-    
+
     # Electrical
     'IfcOutlet': 'Steckdose',
     'IfcSwitchingDevice': 'Schalter',
@@ -60,7 +60,10 @@ IFC_ELEMENT_TRANSLATIONS = {
     'IfcCableSegment': 'Kabelsegment',
     'IfcCableCarrierSegment': 'Kabeltrasse',
     'IfcCableFitting': 'Kabelverschraubung',
-    
+    'IfcCableCarrierFitting': 'Kabelträgerverbindung',
+    'IfcJunctionBox': 'Anschlussdose',
+    'IfcElectricMotor': 'Elektromotor',
+
     # Plumbing and HVAC
     'IfcPipeSegment': 'Rohrsegment',
     'IfcPipeFitting': 'Rohrverbindung',
@@ -75,51 +78,54 @@ IFC_ELEMENT_TRANSLATIONS = {
     'IfcChiller': 'Kühler',
     'IfcHeatExchanger': 'Wärmetauscher',
     'IfcTank': 'Tank',
-    
+
     # Sanitary
     'IfcSanitaryTerminal': 'Sanitärobjekt',
     'IfcWasteTerminal': 'Abfluss',
-    
+
     # Sensors and Controls
     'IfcSensor': 'Sensor',
     'IfcActuator': 'Aktor',
     'IfcAlarm': 'Alarm',
     'IfcController': 'Steuergerät',
     'IfcFlowInstrument': 'Messgerät',
-    
+    'IfcUnitaryControlElement': 'Steuerelement',
+
     # Heating and Cooling
     'IfcSpaceHeater': 'Heizkörper',
     'IfcCooledBeam': 'Kühldecke',
     'IfcCoolingTower': 'Kühlturm',
     'IfcEvaporator': 'Verdampfer',
     'IfcCondenser': 'Kondensator',
-    
+
     # Fire Protection
     'IfcFireSuppressionTerminal': 'Feuerlöscher',
     'IfcSprinkler': 'Sprinkler',
-    
+
     # Furniture and Equipment
     'IfcFurniture': 'Möbel',
     'IfcSystemFurnitureElement': 'Systemmöbel',
     'IfcMedicalDevice': 'Medizinisches Gerät',
-    
+
     # Space and Building
     'IfcSpace': 'Raum',
     'IfcBuildingStorey': 'Geschoss',
     'IfcBuilding': 'Gebäude',
     'IfcSite': 'Grundstück',
-    
+
     # Covering
     'IfcCovering': 'Belag',
     'IfcCeiling': 'Deckenverkleidung',
     'IfcFlooring': 'Bodenbelag',
     'IfcRoofing': 'Dachdeckung',
-    
+
     # Other
     'IfcTransportElement': 'Transportelement',
     'IfcPlate': 'Platte',
     'IfcMember': 'Bauteil',
     'IfcBuildingElementProxy': 'Proxy-Element',
+    'IfcDistributionPort': 'Verteilungsschnittstelle',
+
 }
 
 def get_german_element_name(ifc_name):
