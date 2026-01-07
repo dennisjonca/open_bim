@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 
-{% block title %}Upload IFC File - IFC Query Tool{% endblock %}
+{% block title %}IFC-Datei hochladen - IFC Abfrage-Tool{% endblock %}
 
 {% block content %}
 <div class="upload-section">
-    <h2>Welcome to IFC Query Tool</h2>
-    <p class="subtitle">Upload your IFC file to start querying BIM data</p>
+    <h2>Willkommen beim IFC Abfrage-Tool</h2>
+    <p class="subtitle">Laden Sie Ihre IFC-Datei hoch, um BIM-Daten abzufragen</p>
 
     {% if has_file %}
     <div class="current-file">
-        <h3>Current File</h3>
+        <h3>Aktuelle Datei</h3>
         <p><strong>{{ filename }}</strong></p>
-        <a href="{{ url_for('query_page') }}" class="btn btn-primary">Go to Query Interface</a>
-        <a href="{{ url_for('clear_session') }}" class="btn btn-secondary">Upload New File</a>
+        <a href="{{ url_for('query_page') }}" class="btn btn-primary">Zur Abfrage-Oberfläche</a>
+        <a href="{{ url_for('clear_session') }}" class="btn btn-secondary">Neue Datei hochladen</a>
     </div>
     {% else %}
     <div class="upload-box">
@@ -21,39 +21,39 @@
                 <input type="file" name="file" id="file" accept=".ifc,.IFC" required>
                 <label for="file" class="file-label">
                     <span class="file-icon">📁</span>
-                    <span>Choose IFC File</span>
+                    <span>IFC-Datei auswählen</span>
                 </label>
             </div>
-            <button type="submit" class="btn btn-primary">Upload File</button>
+            <button type="submit" class="btn btn-primary">Datei hochladen</button>
         </form>
     </div>
 
     <div class="info-section">
-        <h3>What can you do with this tool?</h3>
+        <h3>Was können Sie mit diesem Tool tun?</h3>
         <div class="features-grid">
             <div class="feature">
-                <h4>Quantity & Cost Estimation</h4>
-                <p>Count elements per storey or across the entire building</p>
+                <h4>Mengen & Kostenermittlung</h4>
+                <p>Elemente pro Geschoss oder im gesamten Gebäude zählen</p>
             </div>
             <div class="feature">
-                <h4>Lengths & Volumes</h4>
-                <p>Calculate total lengths of pipes, ducts, and cables</p>
+                <h4>Längen & Volumen</h4>
+                <p>Gesamtlängen von Rohren, Lüftungskanälen und Kabeln berechnen</p>
             </div>
             <div class="feature">
-                <h4>Element Context</h4>
-                <p>Find elements in specific spaces or host types</p>
+                <h4>Elementkontext</h4>
+                <p>Elemente in bestimmten Räumen oder Bauteilen finden</p>
             </div>
             <div class="feature">
-                <h4>System Analysis</h4>
-                <p>Analyze MEP systems and electrical circuits</p>
+                <h4>Systemanalyse</h4>
+                <p>TGA-Systeme und elektrische Stromkreise analysieren</p>
             </div>
             <div class="feature">
-                <h4>Space & Usage</h4>
-                <p>Calculate areas and analyze space usage</p>
+                <h4>Raum & Nutzung</h4>
+                <p>Flächen berechnen und Raumnutzung analysieren</p>
             </div>
             <div class="feature">
-                <h4>Compliance Checking</h4>
-                <p>Verify elements are in required locations</p>
+                <h4>Konformitätsprüfung</h4>
+                <p>Prüfen, ob Elemente an erforderlichen Stellen vorhanden sind</p>
             </div>
         </div>
     </div>

@@ -31,14 +31,120 @@ ALLOWED_EXTENSIONS = {'ifc', 'IFC'}
 # Ensure upload folder exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+# German translations for IFC element types
+IFC_ELEMENT_TRANSLATIONS = {
+    # Structural Elements
+    'IfcWall': 'Wand',
+    'IfcWallStandardCase': 'Standardwand',
+    'IfcColumn': 'Stütze',
+    'IfcBeam': 'Träger',
+    'IfcSlab': 'Decke',
+    'IfcRoof': 'Dach',
+    'IfcStair': 'Treppe',
+    'IfcRailing': 'Geländer',
+    'IfcFooting': 'Fundament',
+    'IfcPile': 'Pfahl',
+
+    # Doors and Windows
+    'IfcDoor': 'Tür',
+    'IfcWindow': 'Fenster',
+    'IfcCurtainWall': 'Vorhangfassade',
+
+    # Electrical
+    'IfcOutlet': 'Steckdose',
+    'IfcSwitchingDevice': 'Schalter',
+    'IfcLightFixture': 'Leuchte',
+    'IfcLamp': 'Lampe',
+    'IfcElectricDistributionBoard': 'Verteiler',
+    'IfcElectricAppliance': 'Elektrisches Gerät',
+    'IfcCableSegment': 'Kabelsegment',
+    'IfcCableCarrierSegment': 'Kabeltrasse',
+    'IfcCableFitting': 'Kabelverschraubung',
+    'IfcCableCarrierFitting': 'Kabelträgerverbindung',
+    'IfcJunctionBox': 'Anschlussdose',
+    'IfcElectricMotor': 'Elektromotor',
+
+    # Plumbing and HVAC
+    'IfcPipeSegment': 'Rohrsegment',
+    'IfcPipeFitting': 'Rohrverbindung',
+    'IfcValve': 'Ventil',
+    'IfcPump': 'Pumpe',
+    'IfcDuctSegment': 'Lüftungskanalsegment',
+    'IfcDuctFitting': 'Lüftungskanalverbindung',
+    'IfcAirTerminal': 'Luftauslass',
+    'IfcFan': 'Ventilator',
+    'IfcDamper': 'Klappe',
+    'IfcBoiler': 'Kessel',
+    'IfcChiller': 'Kühler',
+    'IfcHeatExchanger': 'Wärmetauscher',
+    'IfcTank': 'Tank',
+
+    # Sanitary
+    'IfcSanitaryTerminal': 'Sanitärobjekt',
+    'IfcWasteTerminal': 'Abfluss',
+
+    # Sensors and Controls
+    'IfcSensor': 'Sensor',
+    'IfcActuator': 'Aktor',
+    'IfcAlarm': 'Alarm',
+    'IfcController': 'Steuergerät',
+    'IfcFlowInstrument': 'Messgerät',
+    'IfcUnitaryControlElement': 'Steuerelement',
+
+    # Heating and Cooling
+    'IfcSpaceHeater': 'Heizkörper',
+    'IfcCooledBeam': 'Kühldecke',
+    'IfcCoolingTower': 'Kühlturm',
+    'IfcEvaporator': 'Verdampfer',
+    'IfcCondenser': 'Kondensator',
+
+    # Fire Protection
+    'IfcFireSuppressionTerminal': 'Feuerlöscher',
+    'IfcSprinkler': 'Sprinkler',
+
+    # Furniture and Equipment
+    'IfcFurniture': 'Möbel',
+    'IfcSystemFurnitureElement': 'Systemmöbel',
+    'IfcMedicalDevice': 'Medizinisches Gerät',
+
+    # Space and Building
+    'IfcSpace': 'Raum',
+    'IfcBuildingStorey': 'Geschoss',
+    'IfcBuilding': 'Gebäude',
+    'IfcSite': 'Grundstück',
+
+    # Covering
+    'IfcCovering': 'Belag',
+    'IfcCeiling': 'Deckenverkleidung',
+    'IfcFlooring': 'Bodenbelag',
+    'IfcRoofing': 'Dachdeckung',
+
+    # Other
+    'IfcTransportElement': 'Transportelement',
+    'IfcPlate': 'Platte',
+    'IfcMember': 'Bauteil',
+    'IfcBuildingElementProxy': 'Proxy-Element',
+    'IfcDistributionPort': 'Verteilungsschnittstelle',
+
+}
+
+def get_german_element_name(ifc_name):
+    """Konvertiert IFC-Elementnamen in deutsche Bezeichnung."""
+    if ifc_name in IFC_ELEMENT_TRANSLATIONS:
+        return IFC_ELEMENT_TRANSLATIONS[ifc_name]
+    # Fallback: Remove 'Ifc' prefix only if it starts with 'Ifc'
+    if ifc_name.startswith('Ifc'):
+        return ifc_name[3:]
+    return ifc_name
+
 
 def allowed_file(filename):
-    """Check if file has allowed extension."""
+    """Prüfen, ob die Datei eine zulässige Erweiterung hat."""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 def get_ifc_file():
-    """Get the currently loaded IFC file from session."""
+    """Die aktuell geladene IFC-Datei aus der Sitzung abrufen."""
     if 'ifc_filename' not in session:
         return None
     
@@ -49,13 +155,13 @@ def get_ifc_file():
     try:
         return ifcopenshell.open(filepath)
     except Exception as e:
-        flash(f"Error opening IFC file: {str(e)}", "error")
+        flash(f"Fehler beim Öffnen der IFC-Datei: {str(e)}", "error")
         return None
 
 
 @app.route('/')
 def index():
-    """Home page - upload IFC file."""
+    """Startseite - IFC-Datei hochladen."""
     has_file = 'ifc_filename' in session
     filename = session.get('ifc_filename', '')
     return render_template('index.html', has_file=has_file, filename=filename)
@@ -63,15 +169,15 @@ def index():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    """Handle file upload."""
+    """Datei-Upload verarbeiten."""
     if 'file' not in request.files:
-        flash('No file part', 'error')
+        flash('Kein Dateiteil', 'error')
         return redirect(url_for('index'))
     
     file = request.files['file']
     
     if file.filename == '':
-        flash('No selected file', 'error')
+        flash('Keine Datei ausgewählt', 'error')
         return redirect(url_for('index'))
     
     if file and allowed_file(file.filename):
@@ -79,52 +185,53 @@ def upload_file():
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
         
-        # Validate it's a valid IFC file
+        # Validieren, ob es eine gültige IFC-Datei ist
         try:
             ifc_file = ifcopenshell.open(filepath)
             session['ifc_filename'] = filename
-            flash(f'File {filename} uploaded successfully!', 'success')
+            flash(f'Datei {filename} erfolgreich hochgeladen!', 'success')
             return redirect(url_for('query_page'))
         except Exception as e:
-            os.remove(filepath)  # Remove invalid file
-            flash(f'Error: Not a valid IFC file - {str(e)}', 'error')
+            os.remove(filepath)  # Ungültige Datei entfernen
+            flash(f'Fehler: Keine gültige IFC-Datei - {str(e)}', 'error')
             return redirect(url_for('index'))
     else:
-        flash('Invalid file type. Please upload an IFC file.', 'error')
+        flash('Ungültiger Dateityp. Bitte laden Sie eine IFC-Datei hoch.', 'error')
         return redirect(url_for('index'))
 
 
 @app.route('/query')
 def query_page():
-    """Main query interface page."""
+    """Haupt-Abfrage-Oberfläche."""
     if 'ifc_filename' not in session:
-        flash('Please upload an IFC file first', 'warning')
+        flash('Bitte laden Sie zuerst eine IFC-Datei hoch', 'warning')
         return redirect(url_for('index'))
     
     ifc_file = get_ifc_file()
     if not ifc_file:
-        flash('Error loading IFC file', 'error')
+        flash('Fehler beim Laden der IFC-Datei', 'error')
         return redirect(url_for('index'))
     
-    # Get metadata for the interface
+    # Metadaten für die Oberfläche abrufen
     storeys = ifc_queries.get_all_storeys(ifc_file)
     element_types = ifc_queries.get_available_element_types(ifc_file)
     
     return render_template('query_simple.html', 
                          filename=session['ifc_filename'],
                          storeys=storeys,
-                         element_types=element_types)
+                         element_types=element_types,
+                         element_translations=IFC_ELEMENT_TRANSLATIONS)
 
 
 @app.route('/api/query', methods=['POST'])
 def execute_query():
-    """Execute a query and return results as JSON."""
+    """Eine Abfrage ausführen und Ergebnisse als JSON zurückgeben."""
     if 'ifc_filename' not in session:
-        return jsonify({'error': 'No IFC file loaded'}), 400
+        return jsonify({'error': 'Keine IFC-Datei geladen'}), 400
     
     ifc_file = get_ifc_file()
     if not ifc_file:
-        return jsonify({'error': 'Error loading IFC file'}), 500
+        return jsonify({'error': 'Fehler beim Laden der IFC-Datei'}), 500
     
     data = request.get_json()
     query_type = data.get('query_type')
@@ -138,155 +245,167 @@ def execute_query():
 
 
 def execute_query_type(ifc_file, query_type, params):
-    """Execute specific query based on type."""
+    """Spezifische Abfrage basierend auf Typ ausführen."""
     
-    # Category 1: Quantity & Cost Estimation
+    # Kategorie 1: Mengen & Kostenermittlung
     if query_type == 'count_by_storey':
         element_type = params.get('element_type', 'IfcOutlet')
         counts = ifc_queries.count_by_type_and_storey(ifc_file, element_type)
-        # Sort by elevation (basement to top floor)
+        # Nach Höhe sortieren (Keller bis Dachgeschoss)
         sorted_data = ifc_queries.sort_storey_data(ifc_file, counts)
+        german_name = get_german_element_name(element_type)
         return {
             'type': 'table',
-            'title': f'{element_type} Count by Storey',
-            'headers': ['Storey', 'Count'],
+            'title': f'{german_name} Anzahl nach Geschoss',
+            'headers': ['Geschoss', 'Anzahl'],
             'data': sorted_data
         }
     
     elif query_type == 'count_total':
         element_type = params.get('element_type', 'IfcDoor')
         count = ifc_queries.count_by_type_total(ifc_file, element_type)
+        german_name = get_german_element_name(element_type)
         return {
             'type': 'value',
-            'title': f'Total {element_type} Count',
+            'title': f'Gesamt {german_name} Anzahl',
             'value': count,
-            'unit': 'items'
+            'unit': 'Elemente'
         }
     
-    # Category 2: Lengths & Volumes
+    # Kategorie 2: Längen & Volumen
     elif query_type == 'total_length':
         element_type = params.get('element_type', 'IfcPipeSegment')
         length = ifc_queries.get_total_length_by_type(ifc_file, element_type)
+        german_name = get_german_element_name(element_type)
         return {
             'type': 'value',
-            'title': f'Total Length of {element_type}',
+            'title': f'Gesamtlänge von {german_name}',
             'value': round(length, 2),
-            'unit': 'meters'
+            'unit': 'Meter'
         }
     
     elif query_type == 'length_by_storey':
         element_type = params.get('element_type', 'IfcPipeSegment')
         lengths = ifc_queries.get_length_by_storey(ifc_file, element_type)
-        # Sort by elevation and round values
+        # Nach Höhe sortieren und Werte runden
         sorted_data = ifc_queries.sort_storey_data(ifc_file, lengths)
         sorted_data = [[name, round(length, 2)] for name, length in sorted_data]
+        german_name = get_german_element_name(element_type)
         return {
             'type': 'table',
-            'title': f'{element_type} Length by Storey',
-            'headers': ['Storey', 'Length (m)'],
+            'title': f'{german_name} Länge nach Geschoss',
+            'headers': ['Geschoss', 'Länge (m)'],
             'data': sorted_data
         }
     
     elif query_type == 'length_by_system':
         element_type = params.get('element_type', 'IfcPipeSegment')
         lengths = ifc_queries.get_length_by_system(ifc_file, element_type)
+        german_name = get_german_element_name(element_type)
         return {
             'type': 'table',
-            'title': f'{element_type} Length by System',
-            'headers': ['System', 'Length (m)'],
+            'title': f'{german_name} Länge nach System',
+            'headers': ['System', 'Länge (m)'],
             'data': [[k, round(v, 2)] for k, v in lengths.items()]
         }
     
     elif query_type == 'total_area':
         element_type = params.get('element_type', 'IfcCovering')
         area = ifc_queries.get_total_area_by_type(ifc_file, element_type)
+        german_name = get_german_element_name(element_type)
         return {
             'type': 'value',
-            'title': f'Total Area of {element_type}',
+            'title': f'Gesamtfläche von {german_name}',
             'value': round(area, 2),
             'unit': 'm²'
         }
     
-    # Category 3: Element-Context Questions
+    # Kategorie 3: Element-Kontext-Fragen
     elif query_type == 'elements_by_host':
         element_type = params.get('element_type', 'IfcDoor')
         host_type = params.get('host_type', 'IfcWall')
         count = ifc_queries.count_elements_by_host_type(ifc_file, element_type, host_type)
+        german_element = get_german_element_name(element_type)
+        german_host = get_german_element_name(host_type)
         return {
             'type': 'value',
-            'title': f'{element_type} in {host_type}',
+            'title': f'{german_element} in {german_host}',
             'value': count,
-            'unit': 'items'
+            'unit': 'Elemente'
         }
     
     elif query_type == 'elements_in_space_type':
         element_type = params.get('element_type', 'IfcOutlet')
         space_type = params.get('space_type', 'Office')
         count = ifc_queries.count_elements_in_space_type(ifc_file, element_type, space_type)
+        german_name = get_german_element_name(element_type)
         return {
             'type': 'value',
-            'title': f'{element_type} in {space_type} spaces',
+            'title': f'{german_name} in {space_type} Räumen',
             'value': count,
-            'unit': 'items'
+            'unit': 'Elemente'
         }
     
     elif query_type == 'elements_per_space':
         element_type = params.get('element_type', 'IfcSwitchingDevice')
         counts = ifc_queries.count_elements_per_space(ifc_file, element_type)
+        german_name = get_german_element_name(element_type)
         return {
             'type': 'table',
-            'title': f'{element_type} per Space',
-            'headers': ['Space', 'Count'],
+            'title': f'{german_name} pro Raum',
+            'headers': ['Raum', 'Anzahl'],
             'data': sorted([[k, v] for k, v in counts.items()], key=lambda x: x[1], reverse=True)
         }
     
-    # Category 4: System-based Questions
+    # Kategorie 4: Systembasierte Fragen
     elif query_type == 'elements_by_system':
         system_name = params.get('system_name', '')
         systems = ifc_queries.get_elements_by_system(ifc_file, system_name if system_name else None)
         
-        # Flatten for display
+        # Für Anzeige flach machen und Elementtypen übersetzen
         data = []
         for sys_name, elements in systems.items():
             for elem_type, count in elements.items():
-                data.append([sys_name, elem_type, count])
+                german_elem = get_german_element_name(elem_type)
+                data.append([sys_name, german_elem, count])
         
         return {
             'type': 'table',
-            'title': 'Elements by System',
-            'headers': ['System', 'Element Type', 'Count'],
+            'title': 'Elemente nach System',
+            'headers': ['System', 'Elementtyp', 'Anzahl'],
             'data': data
         }
     
     elif query_type == 'elements_per_circuit':
         element_type = params.get('element_type', 'IfcOutlet')
         circuits = ifc_queries.count_elements_per_circuit(ifc_file, element_type)
+        german_name = get_german_element_name(element_type)
         return {
             'type': 'table',
-            'title': f'{element_type} per Circuit',
-            'headers': ['Circuit', 'Count'],
+            'title': f'{german_name} pro Stromkreis',
+            'headers': ['Stromkreis', 'Anzahl'],
             'data': [[k, v] for k, v in circuits.items()]
         }
     
-    # Category 5: Space & Usage Analysis
+    # Kategorie 5: Raum & Nutzungsanalyse
     elif query_type == 'count_rooms':
         count = ifc_queries.count_rooms(ifc_file)
         return {
             'type': 'value',
-            'title': 'Total Number of Rooms',
+            'title': 'Gesamtanzahl der Räume',
             'value': count,
-            'unit': 'rooms'
+            'unit': 'Räume'
         }
     
     elif query_type == 'net_area_per_storey':
         areas = ifc_queries.get_net_area_per_storey(ifc_file)
-        # Sort by elevation and round values
+        # Nach Höhe sortieren und Werte runden
         sorted_data = ifc_queries.sort_storey_data(ifc_file, areas)
         sorted_data = [[name, round(area, 2)] for name, area in sorted_data]
         return {
             'type': 'table',
-            'title': 'Net Area per Storey',
-            'headers': ['Storey', 'Area (m²)'],
+            'title': 'Nettofläche pro Geschoss',
+            'headers': ['Geschoss', 'Fläche (m²)'],
             'data': sorted_data
         }
     
@@ -295,7 +414,7 @@ def execute_query_type(ifc_file, query_type, params):
         area = ifc_queries.get_area_by_space_type(ifc_file, space_type)
         return {
             'type': 'value',
-            'title': f'Total Area of {space_type} Spaces',
+            'title': f'Gesamtfläche der {space_type} Räume',
             'value': round(area, 2),
             'unit': 'm²'
         }
@@ -304,40 +423,42 @@ def execute_query_type(ifc_file, query_type, params):
         element_type = params.get('element_type', 'IfcOutlet')
         space_type = params.get('space_type', 'Office')
         density = ifc_queries.count_elements_per_area(ifc_file, element_type, space_type)
+        german_name = get_german_element_name(element_type)
         return {
             'type': 'value',
-            'title': f'{element_type} per m² in {space_type}',
+            'title': f'{german_name} pro m² in {space_type}',
             'value': round(density, 3),
-            'unit': 'items/m²'
+            'unit': 'Elemente/m²'
         }
     
-    # Category 6: Compliance & Checking
+    # Kategorie 6: Konformität & Prüfung
     elif query_type == 'check_elements_in_spaces':
         element_type = params.get('element_type', 'IfcOutlet')
         space_type = params.get('space_type', 'Office')
         result = ifc_queries.check_elements_in_all_spaces(ifc_file, element_type, space_type)
+        german_name = get_german_element_name(element_type)
         
-        status = "✓ All spaces have elements" if result['all_have'] else "✗ Some spaces missing elements"
+        status = "✓ Alle Räume haben Elemente" if result['all_have'] else "✗ Einigen Räumen fehlen Elemente"
         
         return {
             'type': 'compliance',
-            'title': f'Check: {element_type} in all {space_type} spaces',
+            'title': f'Prüfung: {german_name} in allen {space_type} Räumen',
             'status': status,
             'passed': result['all_have'],
             'details': [
-                f"Total {space_type} spaces: {result['total_spaces']}",
-                f"Spaces with {element_type}: {result['spaces_with_elements']}",
-                f"Spaces missing {element_type}: {result['missing_count']}"
+                f"Gesamt {space_type} Räume: {result['total_spaces']}",
+                f"Räume mit {german_name}: {result['spaces_with_elements']}",
+                f"Räume ohne {german_name}: {result['missing_count']}"
             ]
         }
     
-    # Category 7: Installation & Execution Planning
+    # Kategorie 7: Installations- & Ausführungsplanung
     elif query_type == 'elements_per_floor':
         counts = ifc_queries.count_elements_per_floor(ifc_file)
         return {
             'type': 'table',
-            'title': 'Total Elements per Floor',
-            'headers': ['Floor', 'Count'],
+            'title': 'Gesamtelemente pro Geschoss',
+            'headers': ['Geschoss', 'Anzahl'],
             'data': sorted([[k, v] for k, v in counts.items()], key=lambda x: x[1], reverse=True)
         }
     
@@ -345,14 +466,15 @@ def execute_query_type(ifc_file, query_type, params):
         element_type = params.get('element_type', None)
         floor, count = ifc_queries.get_floor_with_highest_density(ifc_file, element_type)
         
-        title = f'Floor with Highest Density'
+        title = f'Geschoss mit höchster Dichte'
         if element_type:
-            title += f' ({element_type})'
+            german_name = get_german_element_name(element_type)
+            title += f' ({german_name})'
         
         return {
             'type': 'value',
             'title': title,
-            'value': f"{floor}: {count} items",
+            'value': f"{floor}: {count} Elemente",
             'unit': ''
         }
     
@@ -362,31 +484,31 @@ def execute_query_type(ifc_file, query_type, params):
         
         return {
             'type': 'table',
-            'title': f'Rooms with Most Devices',
-            'headers': ['Room', 'Device Count'],
-            'data': rooms[:20]  # Top 20 rooms
+            'title': f'Räume mit den meisten Geräten',
+            'headers': ['Raum', 'Geräteanzahl'],
+            'data': rooms[:20]  # Top 20 Räume
         }
     
-    # Category 8: Maintenance & Handover
+    # Kategorie 8: Wartung & Übergabe
     elif query_type == 'count_maintainable':
         count = ifc_queries.count_maintainable_devices(ifc_file)
         return {
             'type': 'value',
-            'title': 'Total Maintainable Devices',
+            'title': 'Gesamtzahl wartbarer Geräte',
             'value': count,
-            'unit': 'devices'
+            'unit': 'Geräte'
         }
     
     elif query_type == 'locate_distribution_boards':
         locations = ifc_queries.locate_distribution_boards(ifc_file)
         return {
             'type': 'table',
-            'title': 'Distribution Board Locations',
-            'headers': ['Name', 'Storey', 'Space'],
+            'title': 'Standorte der Verteiler',
+            'headers': ['Name', 'Geschoss', 'Raum'],
             'data': [[loc['name'], loc['storey'], loc['space']] for loc in locations]
         }
     
-    # Category 9: High-value Compound Questions
+    # Kategorie 9: Hochwertige zusammengesetzte Fragen
     elif query_type == 'filtered_count':
         element_type = params.get('element_type', 'IfcOutlet')
         storey_filter = params.get('storey_filter', None)
@@ -396,35 +518,36 @@ def execute_query_type(ifc_file, query_type, params):
             ifc_file, element_type, storey_filter, space_type_filter
         )
         
+        german_name = get_german_element_name(element_type)
         filters = []
         if storey_filter:
-            filters.append(f"on {storey_filter}")
+            filters.append(f"auf {storey_filter}")
         if space_type_filter:
-            filters.append(f"in {space_type_filter} spaces")
+            filters.append(f"in {space_type_filter} Räumen")
         
-        filter_str = " ".join(filters) if filters else "total"
+        filter_str = " ".join(filters) if filters else "gesamt"
         
         return {
             'type': 'value',
-            'title': f'{element_type} {filter_str}',
+            'title': f'{german_name} {filter_str}',
             'value': count,
-            'unit': 'items'
+            'unit': 'Elemente'
         }
     
     else:
-        return {'error': f'Unknown query type: {query_type}'}
+        return {'error': f'Unbekannter Abfragetyp: {query_type}'}
 
 
 @app.route('/clear')
 def clear_session():
-    """Clear the current session and uploaded file."""
+    """Die aktuelle Sitzung und hochgeladene Datei löschen."""
     if 'ifc_filename' in session:
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], session['ifc_filename'])
         if os.path.exists(filepath):
             os.remove(filepath)
         session.pop('ifc_filename', None)
     
-    flash('Session cleared', 'info')
+    flash('Sitzung gelöscht', 'info')
     return redirect(url_for('index'))
 
 

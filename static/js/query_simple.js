@@ -104,7 +104,7 @@ function executeQuery(form) {
         }
     })
     .catch(error => {
-        showError('Error executing query: ' + error.message);
+        showError('Fehler beim Ausführen der Abfrage: ' + error.message);
     });
 }
 
@@ -116,7 +116,7 @@ function showLoading() {
     resultsContent.innerHTML = `
         <div class="loading">
             <div class="spinner"></div>
-            <p>Executing query...</p>
+            <p>Abfrage wird ausgeführt...</p>
         </div>
     `;
     
@@ -128,7 +128,7 @@ function showError(message) {
     const resultsContent = document.getElementById('results-content');
     resultsContent.innerHTML = `
         <div class="alert alert-error">
-            <strong>Error:</strong> ${message}
+            <strong>Fehler:</strong> ${message}
         </div>
     `;
 }
@@ -143,7 +143,7 @@ function displayResults(data) {
     } else if (data.type === 'compliance') {
         resultsContent.innerHTML = createComplianceResult(data);
     } else {
-        resultsContent.innerHTML = '<p>Unknown result type</p>';
+        resultsContent.innerHTML = '<p>Unbekannter Ergebnistyp</p>';
     }
 }
 
@@ -164,7 +164,7 @@ function createTableResult(data) {
         return `
             <div class="result-card">
                 <div class="result-title">${data.title}</div>
-                <p>No data found</p>
+                <p>Keine Daten gefunden</p>
             </div>
         `;
     }

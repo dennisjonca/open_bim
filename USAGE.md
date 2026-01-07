@@ -1,235 +1,235 @@
-# IFC Query Tool - Usage Guide
+# IFC Abfrage-Tool - Bedienungsanleitung
 
-## Getting Started
+## Erste Schritte
 
 ### Installation
 
-1. Clone the repository:
+1. Repository klonen:
 ```bash
 git clone https://github.com/dennisjonca/open_bim.git
 cd open_bim
 ```
 
-2. Install dependencies:
+2. Abhängigkeiten installieren:
 ```bash
 pip install -r requirements.txt
 ```
 
-### Running the Application
+### Anwendung ausführen
 
-**Development Mode:**
+**Entwicklungsmodus:**
 ```bash
 python app.py
 ```
 
-**Production Mode:**
+**Produktionsmodus:**
 ```bash
-# Set environment variables
+# Umgebungsvariablen setzen
 export SECRET_KEY="your-secure-random-key-here"
 export FLASK_DEBUG="false"
 
-# Use a production WSGI server
+# Einen Produktions-WSGI-Server verwenden
 pip install gunicorn
 gunicorn -w 4 -b 0.0.0.0:5000 app:app
 ```
 
-3. Open your browser and navigate to:
+3. Öffnen Sie Ihren Browser und navigieren Sie zu:
 ```
 http://localhost:5000
 ```
 
-## Using the Web Interface
+## Verwendung der Weboberfläche
 
-### Step 1: Upload an IFC File
+### Schritt 1: Eine IFC-Datei hochladen
 
-1. On the home page, click "Choose IFC File"
-2. Select your IFC file (must have .ifc or .IFC extension)
-3. Click "Upload File"
-4. Wait for validation - you'll be redirected to the query interface
+1. Klicken Sie auf der Startseite auf "IFC-Datei auswählen"
+2. Wählen Sie Ihre IFC-Datei aus (muss die Erweiterung .ifc oder .IFC haben)
+3. Klicken Sie auf "Datei hochladen"
+4. Warten Sie auf die Validierung - Sie werden zur Abfrage-Oberfläche weitergeleitet
 
-### Step 2: Select a Query Category
+### Schritt 2: Eine Abfragekategorie auswählen
 
-The interface provides 9 query categories:
+Die Oberfläche bietet 9 Abfragekategorien:
 
-1. **Quantity & Cost Estimation** - Count elements per floor or total
-2. **Lengths & Volumes** - Calculate material quantities
-3. **Element Context** - Find elements in specific locations
-4. **System Analysis** - Analyze MEP systems and circuits
-5. **Space & Usage** - Analyze room areas and usage
-6. **Compliance** - Check if elements are in required locations
-7. **Planning** - Identify high-density areas for installation
-8. **Maintenance** - Locate devices requiring maintenance
-9. **Compound Queries** - Complex multi-filter queries
+1. **Mengen & Kostenermittlung** - Elemente pro Geschoss oder gesamt zählen
+2. **Längen & Volumen** - Materialmengen berechnen
+3. **Elementkontext** - Elemente an bestimmten Orten finden
+4. **Systemanalyse** - TGA-Systeme und Stromkreise analysieren
+5. **Raum & Nutzung** - Raumflächen und Nutzung analysieren
+6. **Konformität** - Prüfen, ob Elemente an erforderlichen Stellen vorhanden sind
+7. **Planung** - Bereiche mit hoher Dichte für Installation identifizieren
+8. **Wartung** - Geräte lokalisieren, die Wartung erfordern
+9. **Zusammengesetzte Abfragen** - Komplexe Abfragen mit mehreren Filtern
 
-### Step 3: Configure Your Query
+### Schritt 3: Ihre Abfrage konfigurieren
 
-Each category has specific query options. For example:
+Jede Kategorie hat spezifische Abfrageoptionen. Zum Beispiel:
 
-**Quantity & Cost Estimation:**
-- Select element type (outlets, doors, windows, etc.)
-- Choose between "by storey" or "total" count
+**Mengen & Kostenermittlung:**
+- Elementtyp auswählen (Steckdosen, Türen, Fenster usw.)
+- Zwischen "nach Geschoss" oder "gesamt" Zählung wählen
 
-**Compound Queries:**
-- Select element type
-- Optionally filter by storey (e.g., "First Floor")
-- Optionally filter by space type (e.g., "Office")
+**Zusammengesetzte Abfragen:**
+- Elementtyp auswählen
+- Optional nach Geschoss filtern (z.B. "Obergeschoss")
+- Optional nach Raumtyp filtern (z.B. "Büro")
 
-### Step 4: Execute and View Results
+### Schritt 4: Ausführen und Ergebnisse anzeigen
 
-1. Fill in the query parameters
-2. Click "Execute Query"
-3. Results appear below in one of three formats:
-   - **Value**: Single numeric result with units
-   - **Table**: Multiple rows of data
-   - **Compliance**: Pass/fail status with details
+1. Füllen Sie die Abfrageparameter aus
+2. Klicken Sie auf "Abfrage ausführen"
+3. Ergebnisse erscheinen unten in einem von drei Formaten:
+   - **Wert**: Einzelnes numerisches Ergebnis mit Einheiten
+   - **Tabelle**: Mehrere Datenzeilen
+   - **Konformität**: Bestanden/Nicht bestanden Status mit Details
 
-## Example Queries
+## Beispielabfragen
 
-### Example 1: Count Outlets per Floor
+### Beispiel 1: Steckdosen pro Geschoss zählen
 
-1. Go to "Quantity & Cost Estimation"
-2. Select query: "Count by Storey"
-3. Element Type: "Electrical Outlets"
-4. Click "Execute Query"
+1. Gehen Sie zu "Mengen & Kostenermittlung"
+2. Abfrage auswählen: "Nach Geschoss zählen"
+3. Elementtyp: "Steckdosen"
+4. Klicken Sie auf "Abfrage ausführen"
 
-**Result:** Table showing count of outlets on each floor
+**Ergebnis:** Tabelle mit Anzahl der Steckdosen pro Geschoss
 
-### Example 2: Total Pipe Length
+### Beispiel 2: Gesamte Rohrlänge
 
-1. Go to "Lengths & Volumes"
-2. Select query: "Total Length"
-3. Element Type: "Piping"
-4. Click "Execute Query"
+1. Gehen Sie zu "Längen & Volumen"
+2. Abfrage auswählen: "Gesamtlänge"
+3. Elementtyp: "Rohre"
+4. Klicken Sie auf "Abfrage ausführen"
 
-**Result:** Total length in meters
+**Ergebnis:** Gesamtlänge in Metern
 
-### Example 3: Outlets in Office Spaces
+### Beispiel 3: Steckdosen in Büroräumen
 
-1. Go to "Element Context"
-2. Select query: "Elements in Space Type"
-3. Element Type: "Outlets"
-4. Space Type: "Office"
-5. Click "Execute Query"
+1. Gehen Sie zu "Elementkontext"
+2. Abfrage auswählen: "Elemente im Raumtyp"
+3. Elementtyp: "Steckdosen"
+4. Raumtyp: "Büro"
+5. Klicken Sie auf "Abfrage ausführen"
 
-**Result:** Count of outlets in office spaces
+**Ergebnis:** Anzahl der Steckdosen in Büroräumen
 
-### Example 4: Check Compliance
+### Beispiel 4: Konformitätsprüfung
 
-1. Go to "Compliance"
-2. Select query: "Check Elements in All Spaces"
-3. Element Type: "Outlets"
-4. Space Type: "Office"
-5. Click "Execute Query"
+1. Gehen Sie zu "Konformität"
+2. Abfrage auswählen: "Elemente in allen Räumen prüfen"
+3. Elementtyp: "Steckdosen"
+4. Raumtyp: "Büro"
+5. Klicken Sie auf "Abfrage ausführen"
 
-**Result:** Shows if all office spaces have outlets
+**Ergebnis:** Zeigt, ob alle Büroräume Steckdosen haben
 
-### Example 5: Compound Query
+### Beispiel 5: Zusammengesetzte Abfrage
 
-1. Go to "Compound Queries"
-2. Select query: "Filtered Element Count"
-3. Element Type: "Outlets"
-4. Storey Filter: "First"
-5. Space Type Filter: "Office"
-6. Click "Execute Query"
+1. Gehen Sie zu "Zusammengesetzte Abfragen"
+2. Abfrage auswählen: "Gefilterte Elementanzahl"
+3. Elementtyp: "Steckdosen"
+4. Geschossfilter: "Obergeschoss"
+5. Raumtypfilter: "Büro"
+6. Klicken Sie auf "Abfrage ausführen"
 
-**Result:** Count of outlets in office spaces on the first floor
+**Ergebnis:** Anzahl der Steckdosen in Büroräumen im Obergeschoss
 
-## Understanding Results
+## Ergebnisse verstehen
 
-### Value Results
-Shows a single number with units:
+### Wertergebnisse
+Zeigt eine einzelne Zahl mit Einheiten:
 ```
-Total Electrical Outlets: 156 items
+Gesamt Steckdosen: 156 Elemente
 ```
 
-### Table Results
-Shows multiple rows:
+### Tabellenergebnisse
+Zeigt mehrere Zeilen:
 ```
-Storey              | Count
+Geschoss            | Anzahl
 --------------------|-------
-Ground Floor        | 45
-First Floor         | 52
-Second Floor        | 38
+Erdgeschoss         | 45
+Obergeschoss        | 52
+Zweites Geschoss    | 38
 ```
 
-### Compliance Results
-Shows pass/fail status:
+### Konformitätsergebnisse
+Zeigt Bestanden/Nicht bestanden Status:
 ```
-✓ All spaces have elements
-Total Office spaces: 25
-Spaces with Outlets: 25
-Spaces missing Outlets: 0
+✓ Alle Räume haben Elemente
+Gesamt Büroräume: 25
+Räume mit Steckdosen: 25
+Räume ohne Steckdosen: 0
 ```
 
-## Tips and Best Practices
+## Tipps und Best Practices
 
-### Query Performance
-- Start with simple queries to understand your data
-- Use filters to narrow down results
-- Some queries may take time with large IFC files
+### Abfrage-Performance
+- Beginnen Sie mit einfachen Abfragen, um Ihre Daten zu verstehen
+- Verwenden Sie Filter, um Ergebnisse einzugrenzen
+- Einige Abfragen können bei großen IFC-Dateien Zeit benötigen
 
-### Data Quality
-The quality of results depends on your IFC file:
-- **Element Classification**: Elements should be properly classified (not all proxies)
-- **Storey Assignment**: Elements should be assigned to floors
-- **System Data**: MEP elements should be assigned to systems for system queries
-- **Spatial Relationships**: Elements should be contained in or referenced by spaces
+### Datenqualität
+Die Qualität der Ergebnisse hängt von Ihrer IFC-Datei ab:
+- **Elementklassifizierung**: Elemente sollten ordnungsgemäß klassifiziert sein (nicht alle Proxys)
+- **Geschosszuordnung**: Elemente sollten Geschossen zugeordnet sein
+- **Systemdaten**: TGA-Elemente sollten für Systemabfragen Systemen zugeordnet sein
+- **Räumliche Beziehungen**: Elemente sollten in Räumen enthalten oder referenziert sein
 
-### Troubleshooting
+### Fehlerbehebung
 
-**Query returns no data:**
-- Check if elements of that type exist in your IFC file
-- Check if elements are properly assigned to storeys/spaces
-- Try the "Elements per Floor" query to see what's available
+**Abfrage gibt keine Daten zurück:**
+- Prüfen Sie, ob Elemente dieses Typs in Ihrer IFC-Datei existieren
+- Prüfen Sie, ob Elemente ordnungsgemäß Geschossen/Räumen zugeordnet sind
+- Versuchen Sie die Abfrage "Elemente pro Geschoss", um zu sehen, was verfügbar ist
 
-**Elements showing as "Unassigned":**
-- Elements may not be assigned to a floor in your BIM model
-- Check spatial relationships in your BIM authoring tool
+**Elemente werden als "Nicht zugeordnet" angezeigt:**
+- Elemente sind möglicherweise keinem Geschoss in Ihrem BIM-Modell zugeordnet
+- Prüfen Sie räumliche Beziehungen in Ihrem BIM-Authoring-Tool
 
-**System queries return empty:**
-- MEP elements may not be assigned to systems in your model
-- Use your BIM authoring tool to create and assign systems
+**Systemabfragen geben nichts zurück:**
+- TGA-Elemente sind möglicherweise in Ihrem Modell keinen Systemen zugeordnet
+- Verwenden Sie Ihr BIM-Authoring-Tool, um Systeme zu erstellen und zuzuordnen
 
-## Command Line Alternative
+## Kommandozeilen-Alternative
 
-For batch processing or scripting, use the original analyzer:
+Für Batch-Verarbeitung oder Skripting verwenden Sie den ursprünglichen Analyser:
 ```bash
-# Place IFC file in the same directory
+# IFC-Datei im selben Verzeichnis platzieren
 python analyze_ifc.py
 ```
 
-This provides detailed console output with all available data.
+Dies bietet detaillierte Konsolenausgabe mit allen verfügbaren Daten.
 
-## Security Notes
+## Sicherheitshinweise
 
-### For Production Deployment
+### Für Produktions-Deployment
 
-1. **Always set a secure SECRET_KEY:**
+1. **Setzen Sie immer einen sicheren SECRET_KEY:**
 ```bash
 export SECRET_KEY="$(python -c 'import os; print(os.urandom(24).hex())')"
 ```
 
-2. **Disable debug mode:**
+2. **Debug-Modus deaktivieren:**
 ```bash
 export FLASK_DEBUG="false"
 ```
 
-3. **Use a production WSGI server** (not Flask's built-in server):
+3. **Verwenden Sie einen Produktions-WSGI-Server** (nicht den integrierten Flask-Server):
 ```bash
 gunicorn -w 4 -b 0.0.0.0:5000 app:app
 ```
 
-4. **Set up proper file permissions** for the uploads directory
+4. **Richten Sie ordnungsgemäße Dateiberechtigungen** für das Upload-Verzeichnis ein
 
-5. **Consider adding authentication** if deploying publicly
+5. **Erwägen Sie das Hinzufügen von Authentifizierung** bei öffentlichem Deployment
 
-6. **Set up HTTPS** with a reverse proxy (nginx, Apache)
+6. **Richten Sie HTTPS ein** mit einem Reverse-Proxy (nginx, Apache)
 
-7. **Limit file upload sizes** (already set to 100MB)
+7. **Begrenzen Sie Upload-Dateigrößen** (bereits auf 100 MB gesetzt)
 
 ## Support
 
-For issues or questions:
-- Check the README.md for general information
-- Review the original analyze_ifc.py for detailed IFC analysis
-- Consult ifcopenshell documentation for IFC schema details
+Für Probleme oder Fragen:
+- Prüfen Sie die README.md für allgemeine Informationen
+- Überprüfen Sie das ursprüngliche analyze_ifc.py für detaillierte IFC-Analyse
+- Konsultieren Sie die ifcopenshell-Dokumentation für IFC-Schema-Details
