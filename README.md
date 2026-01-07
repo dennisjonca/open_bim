@@ -1,130 +1,130 @@
 # open_bim
-This Project tries to read and write ifc files from bim projects.
+Dieses Projekt versucht, IFC-Dateien aus BIM-Projekten zu lesen und zu schreiben.
 
-## IFC Query Web Application
+## IFC Abfrage-Webanwendung
 
-A Flask-based web application that allows you to upload IFC files and query them through an intuitive web interface. Answer complex questions about your BIM data without writing code.
+Eine Flask-basierte Webanwendung, mit der Sie IFC-Dateien hochladen und über eine intuitive Weboberfläche abfragen können. Beantworten Sie komplexe Fragen zu Ihren BIM-Daten ohne Code zu schreiben.
 
-### Features
+### Funktionen
 
-The web application provides 9 comprehensive query categories covering all aspects of IFC data:
+Die Webanwendung bietet 9 umfassende Abfragekategorien, die alle Aspekte von IFC-Daten abdecken:
 
-1. **Quantity & Cost Estimation** - Count elements per storey or building-wide
-2. **Lengths & Volumes** - Calculate total lengths of pipes, ducts, cables, and surface areas
-3. **Element Context** - Find elements in specific spaces or host types
-4. **System Analysis** - Analyze MEP systems and electrical circuits
-5. **Space & Usage** - Calculate areas and analyze space usage patterns
-6. **Compliance Checking** - Verify elements are in required locations
-7. **Installation Planning** - Coordinate on-site installation work
-8. **Maintenance & Handover** - Locate maintainable devices and distribution points
-9. **Compound Queries** - Complex queries with multiple filters
+1. **Mengen & Kostenermittlung** - Elemente pro Geschoss oder gebäudeweit zählen
+2. **Längen & Volumen** - Gesamtlängen von Rohren, Lüftungskanälen, Kabeln und Oberflächen berechnen
+3. **Elementkontext** - Elemente in bestimmten Räumen oder Bauteilen finden
+4. **Systemanalyse** - TGA-Systeme und elektrische Stromkreise analysieren
+5. **Raum & Nutzung** - Flächen berechnen und Raumnutzungsmuster analysieren
+6. **Konformitätsprüfung** - Prüfen, ob Elemente an erforderlichen Stellen vorhanden sind
+7. **Installationsplanung** - Installationsarbeiten vor Ort koordinieren
+8. **Wartung & Übergabe** - Wartbare Geräte und Verteilerpunkte lokalisieren
+9. **Zusammengesetzte Abfragen** - Komplexe Abfragen mit mehreren Filtern
 
-### Quick Start
+### Schnellstart
 
-1. Install dependencies:
+1. Abhängigkeiten installieren:
 ```bash
 pip install -r requirements.txt
 ```
 
-2. Run the Flask application:
+2. Flask-Anwendung starten:
 ```bash
 python app.py
 ```
 
-3. Open your browser and navigate to:
+3. Öffnen Sie Ihren Browser und navigieren Sie zu:
 ```
 http://localhost:5000
 ```
 
-4. Upload an IFC file and start querying!
+4. Laden Sie eine IFC-Datei hoch und beginnen Sie mit den Abfragen!
 
-### Usage
+### Verwendung
 
-1. **Upload IFC File**: Click "Choose IFC File" on the home page and upload your IFC file
-2. **Select Query Category**: Choose from 9 categories in the sidebar
-3. **Configure Query**: Fill in the form parameters for your specific question
-4. **Execute Query**: Click "Execute Query" to see results
-5. **View Results**: Results are displayed as tables, values, or compliance checks
+1. **IFC-Datei hochladen**: Klicken Sie auf der Startseite auf "IFC-Datei auswählen" und laden Sie Ihre IFC-Datei hoch
+2. **Abfragekategorie auswählen**: Wählen Sie aus 9 Kategorien in der Seitenleiste
+3. **Abfrage konfigurieren**: Füllen Sie die Formularparameter für Ihre spezifische Frage aus
+4. **Abfrage ausführen**: Klicken Sie auf "Abfrage ausführen", um Ergebnisse zu sehen
+5. **Ergebnisse anzeigen**: Ergebnisse werden als Tabellen, Werte oder Konformitätsprüfungen angezeigt
 
-### Example Queries
+### Beispielabfragen
 
-- "How many electrical outlets are on the ground floor?"
-- "What is the total length of potable water piping?"
-- "How many luminaires are installed in office spaces?"
-- "Which floor has the highest installation density?"
-- "Are there outlets in every office room?"
+- "Wie viele Steckdosen gibt es im Erdgeschoss?"
+- "Was ist die Gesamtlänge der Trinkwasserleitungen?"
+- "Wie viele Leuchten sind in Büroräumen installiert?"
+- "Welches Geschoss hat die höchste Installationsdichte?"
+- "Gibt es in jedem Büroraum Steckdosen?"
 
-## IFC File Analyzer (Command Line)
+## IFC-Datei-Analyser (Kommandozeile)
 
-A Python script that uses the ifcopenshell API to read and analyze IFC (Industry Foundation Classes) files. The script counts various BIM objects such as walls, doors, windows, slabs, beams, columns, and more.
+Ein Python-Skript, das die ifcopenshell-API verwendet, um IFC-Dateien (Industry Foundation Classes) zu lesen und zu analysieren. Das Skript zählt verschiedene BIM-Objekte wie Wände, Türen, Fenster, Decken, Träger, Stützen und mehr.
 
-### Features
+### Funktionen
 
-- **Automatically detects IFC files** in the current directory (shows full file paths)
-- **Reads IFC files** using ifcopenshell API only
-- **Quick summary** of common BIM object types:
-  - Walls, Doors, Windows, Slabs, Beams, Columns
-  - Stairs, Roofs, Spaces, Furniture, and more
-- **Comprehensive product listing** - Shows ALL IfcProduct types organized by category:
-  - **Structural Elements**: Walls, beams, columns, slabs, footings, etc.
-  - **MEP & HVAC**: Ducts, pipes, pumps, valves, boilers, chillers, etc.
-  - **Electrical & Lighting**: Lamps, light fixtures, sensors, cables, outlets, etc.
-  - **Plumbing & Sanitary**: Sanitary terminals, waste terminals, etc.
-  - **Sensors & Controls**: Sensors, actuators, alarms, controllers, etc.
-  - **Furnishing & Equipment**: Furniture, medical devices, audio/visual equipment, etc.
-  - **Transport**: Transport elements
-  - **And more categories...**
-- **Floor/Storey-based organization** - Shows products sorted by building floor:
-  - Displays products for each floor (Basement, Ground Floor, First Floor, etc.)
-  - Sorted by elevation from lowest to highest
-  - Shows elevation values for each floor
-  - Includes total counts per floor and grand total
-  - **Enhanced spatial relationship detection** for better storey assignment:
-    - Checks `IfcRelContainedInSpatialStructure` (direct containment)
-    - Checks `IfcRelReferencedInSpatialStructure` (often used for MEP/outlets)
-    - Checks `IfcRelAggregates` (spatial decomposition)
-    - Traverses through spaces to find parent storeys
-- **Unassigned Object Analysis** - Helps diagnose why objects lack storey assignment:
-  - Shows which objects have spatial relationships but no storey assignment
-  - Shows which objects have no spatial relationships at all
-  - Displays the types of relationships found for debugging
-  - Provides recommendations for fixing assignments in BIM authoring tools
-- **MEP System Organization** - Shows products organized by MEP systems:
-  - Displays electrical circuits with all connected devices (outlets, fixtures, etc.)
-  - Shows HVAC systems with their components (pumps, valves, terminals, etc.)
-  - Lists plumbing systems and their connections
-  - Identifies MEP products not assigned to any system
-  - Helps understand system connectivity and organization
-  - Uses `IfcSystem`, `IfcElectricalCircuit`, and `IfcDistributionSystem` relationships
-- **Displays project information** and IFC schema version
-- **Sorted by count** within each category for easy analysis
+- **Erkennt automatisch IFC-Dateien** im aktuellen Verzeichnis (zeigt vollständige Dateipfade an)
+- **Liest IFC-Dateien** nur mit der ifcopenshell-API
+- **Schnellübersicht** gängiger BIM-Objekttypen:
+  - Wände, Türen, Fenster, Decken, Träger, Stützen
+  - Treppen, Dächer, Räume, Möbel und mehr
+- **Umfassende Produktauflistung** - Zeigt ALLE IfcProduct-Typen organisiert nach Kategorie:
+  - **Tragende Elemente**: Wände, Träger, Stützen, Decken, Fundamente usw.
+  - **TGA & HLK**: Kanäle, Rohre, Pumpen, Ventile, Kessel, Kühler usw.
+  - **Elektrik & Beleuchtung**: Lampen, Leuchten, Sensoren, Kabel, Steckdosen usw.
+  - **Sanitär**: Sanitäre Endgeräte, Abflussendgeräte usw.
+  - **Sensoren & Steuerungen**: Sensoren, Aktoren, Alarme, Steuergeräte usw.
+  - **Ausstattung & Geräte**: Möbel, medizinische Geräte, Audio-/Videogeräte usw.
+  - **Transport**: Transportelemente
+  - **Und weitere Kategorien...**
+- **Geschossbasierte Organisation** - Zeigt Produkte sortiert nach Gebäudeetagen:
+  - Zeigt Produkte für jede Etage an (Keller, Erdgeschoss, Obergeschoss usw.)
+  - Sortiert nach Höhe von niedrigster bis höchster
+  - Zeigt Höhenwerte für jede Etage
+  - Enthält Gesamtzahlen pro Etage und Gesamtsumme
+  - **Erweiterte räumliche Beziehungserkennung** für bessere Geschosszuordnung:
+    - Prüft `IfcRelContainedInSpatialStructure` (direkte Zugehörigkeit)
+    - Prüft `IfcRelReferencedInSpatialStructure` (oft für TGA/Steckdosen verwendet)
+    - Prüft `IfcRelAggregates` (räumliche Dekomposition)
+    - Durchläuft Räume, um übergeordnete Geschosse zu finden
+- **Analyse nicht zugeordneter Objekte** - Hilft zu diagnostizieren, warum Objekte keine Geschosszuordnung haben:
+  - Zeigt, welche Objekte räumliche Beziehungen haben, aber keine Geschosszuordnung
+  - Zeigt, welche Objekte überhaupt keine räumlichen Beziehungen haben
+  - Zeigt die Arten der gefundenen Beziehungen zur Fehlersuche
+  - Gibt Empfehlungen zur Behebung von Zuordnungen in BIM-Authoring-Tools
+- **TGA-Systemorganisation** - Zeigt Produkte organisiert nach TGA-Systemen:
+  - Zeigt elektrische Stromkreise mit allen angeschlossenen Geräten (Steckdosen, Leuchten usw.)
+  - Zeigt HLK-Systeme mit ihren Komponenten (Pumpen, Ventile, Endgeräte usw.)
+  - Listet Sanitärsysteme und ihre Verbindungen auf
+  - Identifiziert TGA-Produkte, die keinem System zugeordnet sind
+  - Hilft, Systemkonnektivität und -organisation zu verstehen
+  - Verwendet `IfcSystem`, `IfcElectricalCircuit` und `IfcDistributionSystem` Beziehungen
+- **Zeigt Projektinformationen** und IFC-Schemaversion an
+- **Sortiert nach Anzahl** innerhalb jeder Kategorie für einfache Analyse
 
 ### Installation
 
-1. Install Python 3.6 or higher
-2. Install the required dependencies:
+1. Installieren Sie Python 3.6 oder höher
+2. Installieren Sie die erforderlichen Abhängigkeiten:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Usage
+### Verwendung
 
-1. Place your IFC file(s) in the same directory as `analyze_ifc.py`
-2. Run the script:
+1. Platzieren Sie Ihre IFC-Datei(en) im selben Verzeichnis wie `analyze_ifc.py`
+2. Führen Sie das Skript aus:
 
 ```bash
 python analyze_ifc.py
 ```
 
-Or make it executable and run directly:
+Oder machen Sie es ausführbar und führen Sie es direkt aus:
 
 ```bash
 chmod +x analyze_ifc.py
 ./analyze_ifc.py
 ```
 
-### Example Output
+### Beispielausgabe
 
 ```
 ============================================================
@@ -308,13 +308,13 @@ Recommendation:
 ============================================================
 ```
 
-### Requirements
+### Anforderungen
 
 - Python 3.6+
 - ifcopenshell >= 0.7.0
 
-### Notes
+### Hinweise
 
-- The script looks for files with `.ifc` or `.IFC` extensions
-- Multiple IFC files in the directory will all be analyzed
-- The script uses only the ifcopenshell API (no other dependencies)
+- Das Skript sucht nach Dateien mit `.ifc` oder `.IFC` Erweiterungen
+- Mehrere IFC-Dateien im Verzeichnis werden alle analysiert
+- Das Skript verwendet nur die ifcopenshell-API (keine anderen Abhängigkeiten)
