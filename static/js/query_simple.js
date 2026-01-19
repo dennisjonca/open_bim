@@ -29,7 +29,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const countableElements = [];
     const linearElements = [];
     const areaElements = [];
-    const mepElements = [];
 
     availableElements.forEach(elem => {
         // Add all to countable
@@ -43,15 +42,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Check if area (slabs, coverings)
         if (elem.includes('Slab') || elem.includes('Covering') || elem.includes('Roof')) {
             areaElements.push(elem);
-        }
-        
-        // Check if MEP
-        if (elem.includes('Pipe') || elem.includes('Duct') || elem.includes('Cable') || 
-            elem.includes('Outlet') || elem.includes('Switch') || elem.includes('Light') ||
-            elem.includes('Sensor') || elem.includes('Valve') || elem.includes('Pump') ||
-            elem.includes('Fan') || elem.includes('Terminal') || elem.includes('Sanitary') ||
-            elem.includes('Distribution') || elem.includes('Electric')) {
-            mepElements.push(elem);
         }
     });
 
@@ -77,19 +67,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Populate all selects
     populateSelect('quantity_storey_select', countableElements);
     populateSelect('quantity_total_select', countableElements);
-    populateSelect('quantity_mep_select', mepElements);
     
     // Length selects
     populateSelect('length_storey_select', linearElements);
     populateSelect('length_total_select', linearElements);
-    populateSelect('length_mep_select', mepElements.filter(e => e.includes('Segment') || e.includes('Conduit')));
-    populateSelect('length_mep_total_select', mepElements.filter(e => e.includes('Segment') || e.includes('Conduit')));
     
     // Area selects
     populateSelect('area_select', areaElements);
-    
-    // Space MEP select
-    populateSelect('space_mep_select', mepElements);
 
     const viewModeButtons = document.querySelectorAll('.view-mode-button');
     const tabButtons = document.querySelectorAll('.tab-button');

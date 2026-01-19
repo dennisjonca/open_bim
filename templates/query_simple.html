@@ -18,13 +18,13 @@
 
     <div class="query-interface">
         <div class="query-sidebar">
-            <h3>Ansichtsmodus</h3>
+            <h3>Abfragemodus</h3>
             <div class="view-mode-tabs">
                 <button class="view-mode-button active" data-view="storey">
                     Nach Geschoss
                 </button>
-                <button class="view-mode-button" data-view="mep">
-                    Nach TGA
+                <button class="view-mode-button" data-view="special">
+                    Spezielle Abfrage
                 </button>
             </div>
 
@@ -77,30 +77,12 @@
                     </div>
                 </div>
 
-                <!-- By MEP View -->
-                <div class="view-panel" data-view="mep">
+                <!-- Special Query View (Placeholder) -->
+                <div class="view-panel" data-view="special">
                     <div class="query-card">
-                        <h4>TGA-Elemente nach System</h4>
-                        <form class="query-form" data-query="elements_by_system">
-                            <div class="form-group">
-                                <label>Nach Systemname filtern (optional):</label>
-                                <input type="text" name="system_name" placeholder="Leer lassen für alle Systeme">
-                            </div>
-                            <button type="submit" class="btn btn-primary">Abfrage ausführen</button>
-                        </form>
-                    </div>
-
-                    <div class="query-card">
-                        <h4>Zählung nach TGA-Elementtyp</h4>
-                        <form class="query-form" data-query="count_total">
-                            <div class="form-group">
-                                <label>TGA-Elementtyp:</label>
-                                <select name="element_type" id="quantity_mep_select" required>
-                                    <option value="">-- TGA-Elementtyp auswählen --</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Abfrage ausführen</button>
-                        </form>
+                        <h4>Spezielle Abfragen</h4>
+                        <p class="info-message">Diese Ansicht wird in Zukunft erweiterte Abfragen enthalten, wie z.B. Brüstungskanalinformationen und GKB-Wand-Tür-Informationen.</p>
+                        <p class="info-message">Weitere Funktionen folgen in Kürze.</p>
                     </div>
                 </div>
             </div>
@@ -152,32 +134,12 @@
                     </div>
                 </div>
 
-                <!-- By MEP View -->
-                <div class="view-panel" data-view="mep">
+                <!-- Special Query View (Placeholder) -->
+                <div class="view-panel" data-view="special">
                     <div class="query-card">
-                        <h4>TGA-Gesamtlängen nach System</h4>
-                        <form class="query-form" data-query="length_by_system">
-                            <div class="form-group">
-                                <label>TGA-Linienelementtyp:</label>
-                                <select name="element_type" id="length_mep_select" required>
-                                    <option value="">-- TGA-Elementtyp auswählen --</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Abfrage ausführen</button>
-                        </form>
-                    </div>
-
-                    <div class="query-card">
-                        <h4>Gesamtlänge nach TGA-Typ</h4>
-                        <form class="query-form" data-query="total_length">
-                            <div class="form-group">
-                                <label>TGA-Linienelementtyp:</label>
-                                <select name="element_type" id="length_mep_total_select" required>
-                                    <option value="">-- TGA-Elementtyp auswählen --</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Abfrage ausführen</button>
-                        </form>
+                        <h4>Spezielle Abfragen</h4>
+                        <p class="info-message">Diese Ansicht wird in Zukunft erweiterte Abfragen enthalten, wie z.B. Brüstungskanalinformationen und GKB-Wand-Tür-Informationen.</p>
+                        <p class="info-message">Weitere Funktionen folgen in Kürze.</p>
                     </div>
                 </div>
             </div>
@@ -215,26 +177,12 @@
                     </div>
                 </div>
 
-                <!-- By MEP View -->
-                <div class="view-panel" data-view="mep">
+                <!-- Special Query View (Placeholder) -->
+                <div class="view-panel" data-view="special">
                     <div class="query-card">
-                        <h4>Räume mit TGA-Elementen</h4>
-                        <form class="query-form" data-query="elements_per_space">
-                            <div class="form-group">
-                                <label>TGA-Elementtyp:</label>
-                                <select name="element_type" id="space_mep_select" required>
-                                    <option value="">-- TGA-Elementtyp auswählen --</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Abfrage ausführen</button>
-                        </form>
-                    </div>
-
-                    <div class="query-card">
-                        <h4>Räume/Flächen zählen</h4>
-                        <form class="query-form" data-query="count_rooms">
-                            <button type="submit" class="btn btn-primary">Abfrage ausführen</button>
-                        </form>
+                        <h4>Spezielle Abfragen</h4>
+                        <p class="info-message">Diese Ansicht wird in Zukunft erweiterte Abfragen enthalten, wie z.B. Brüstungskanalinformationen und GKB-Wand-Tür-Informationen.</p>
+                        <p class="info-message">Weitere Funktionen folgen in Kürze.</p>
                     </div>
                 </div>
             </div>
