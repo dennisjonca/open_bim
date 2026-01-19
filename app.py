@@ -706,34 +706,68 @@ def execute_query_type(ifc_file, query_type, params):
         
         data = []
         
-        # Add parapet channels section
+        # Add parapet channels with individual details
         if details['parapet_channels']['count'] > 0:
+            data.append(['=== Brüstungskanäle (Parapet Channels) ===', '', '', '', ''])
+            data.append(['ID', 'Name', 'Typ-Name', 'Höhe (m)', 'Länge (m)'])
+            
+            for item in details['parapet_channels']['items']:
+                data.append([
+                    str(item['id']),
+                    item['name'] if item['name'] else 'N/A',
+                    item['type_name'] if item['type_name'] else 'N/A',
+                    f"{item['height']:.3f}" if item['height'] is not None else 'N/A',
+                    f"{item['length']:.3f}" if item['length'] is not None else 'N/A'
+                ])
+            
+            # Subtotal for parapet channels
             data.append([
-                'Brüstungskanäle (Parapet)',
-                details['parapet_channels']['count'],
-                round(details['parapet_channels']['total_length'], 2) if details['parapet_channels']['total_length'] > 0 else 0
+                'Zwischensumme',
+                f"{details['parapet_channels']['count']} Elemente",
+                '',
+                '',
+                f"{round(details['parapet_channels']['total_length'], 2)} m"
             ])
+            data.append(['', '', '', '', ''])  # Empty row for spacing
         
-        # Add other cable carriers section
+        # Add other cable carriers with individual details
         if details['other_cable_carriers']['count'] > 0:
+            data.append(['=== Andere Kabelträger (Other Cable Carriers) ===', '', '', '', ''])
+            data.append(['ID', 'Name', 'Typ-Name', 'Höhe (m)', 'Länge (m)'])
+            
+            for item in details['other_cable_carriers']['items']:
+                data.append([
+                    str(item['id']),
+                    item['name'] if item['name'] else 'N/A',
+                    item['type_name'] if item['type_name'] else 'N/A',
+                    f"{item['height']:.3f}" if item['height'] is not None else 'N/A',
+                    f"{item['length']:.3f}" if item['length'] is not None else 'N/A'
+                ])
+            
+            # Subtotal for other carriers
             data.append([
-                'Andere Kabelträger',
-                details['other_cable_carriers']['count'],
-                round(details['other_cable_carriers']['total_length'], 2) if details['other_cable_carriers']['total_length'] > 0 else 0
+                'Zwischensumme',
+                f"{details['other_cable_carriers']['count']} Elemente",
+                '',
+                '',
+                f"{round(details['other_cable_carriers']['total_length'], 2)} m"
             ])
+            data.append(['', '', '', '', ''])  # Empty row for spacing
         
         # Add total row
         if details['total_count'] > 0:
             data.append([
                 'GESAMT',
-                details['total_count'],
-                round(details['total_length'], 2) if details['total_length'] > 0 else 0
+                f"{details['total_count']} Elemente",
+                '',
+                '',
+                f"{round(details['total_length'], 2)} m"
             ])
         
         return {
             'type': 'table',
-            'title': 'Kabelträgersegmente (IfcCableCarrierSegment) - Übersicht',
-            'headers': ['Kategorie', 'Anzahl', 'Gesamtlänge (m)'],
+            'title': 'Kabelträgersegmente (IfcCableCarrierSegment) - Detailansicht',
+            'headers': ['ID / Kategorie', 'Name / Anzahl', 'Typ-Name', 'Höhe (m)', 'Länge (m)'],
             'data': data
         }
     
@@ -946,7 +980,15 @@ def execute_query_type_multi(ifc_files, query_type, params):
         }
     
     elif query_type == 'cable_carriers_detailed':
-        # Show cable carrier details for each file
+        # For single file, show detailed individual elements
+        if len(ifc_files) == 1:
+            filename = list(ifc_files.keys())[0]
+            ifc_file = ifc_files[filename]
+            result = execute_query_type(ifc_file, query_type, params)
+            result['title'] = f"{result.get('title', '')} - {filename}"
+            return result
+        
+        # For multiple files, show summary comparison
         headers = ['Kategorie'] + list(ifc_files.keys())
         
         # Categories to show
@@ -973,7 +1015,7 @@ def execute_query_type_multi(ifc_files, query_type, params):
         
         return {
             'type': 'table',
-            'title': 'Kabelträgersegmente - Übersicht nach Datei (Anzahl (Länge))',
+            'title': 'Kabelträgersegmente - Vergleich nach Datei (Anzahl (Länge))',
             'headers': headers,
             'data': data
         }
