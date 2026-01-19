@@ -32,6 +32,14 @@ except ImportError:
     sys.exit(1)
 
 
+# Wall type constants
+WALL_TYPE_GKB = 'GKB'
+WALL_TYPE_CONCRETE = 'Concrete'
+WALL_TYPE_BRICK = 'Brick'
+WALL_TYPE_WOOD = 'Wood'
+WALL_TYPE_UNKNOWN = 'Unknown'
+
+
 def find_ifc_files():
     """Find all IFC files in the current directory."""
     current_dir = os.getcwd()
@@ -141,52 +149,53 @@ def get_wall_from_door(door):
     return (None, None)
 
 
+def _check_keywords_in_texts(texts, keywords):
+    """
+    Helper function to check if any keyword is found in any of the provided texts.
+    """
+    for text in texts:
+        if text:
+            text_lower = text.lower()
+            if any(kw in text_lower for kw in keywords):
+                return True
+    return False
+
+
 def get_wall_type_classification(wall):
     """
     Classify the wall type based on its name, type name, and description.
     
     Returns:
-        - 'GKB' if it's a plasterboard/drywall
-        - 'Concrete' if it's concrete
-        - 'Brick' if it's brick/masonry
-        - 'Unknown' if classification cannot be determined
+        - WALL_TYPE_GKB if it's a plasterboard/drywall
+        - WALL_TYPE_CONCRETE if it's concrete
+        - WALL_TYPE_BRICK if it's brick/masonry
+        - WALL_TYPE_WOOD if it's wood
+        - WALL_TYPE_UNKNOWN if classification cannot be determined
     """
     wall_name = get_element_name(wall)
     type_name = get_element_type_name(wall)
     type_description = get_element_type_description(wall)
-    ifc_type = wall.is_a()
+    texts = [wall_name, type_name, type_description]
     
     # Check for GKB keywords
     if check_for_gkb_keywords(wall_name) or \
        check_for_gkb_keywords(type_name) or \
        check_for_gkb_keywords(type_description):
-        return 'GKB'
+        return WALL_TYPE_GKB
     
     # Check for concrete
-    concrete_keywords = ['beton', 'concrete', 'stahlbeton']
-    for text in [wall_name, type_name, type_description]:
-        if text:
-            text_lower = text.lower()
-            if any(kw in text_lower for kw in concrete_keywords):
-                return 'Concrete'
+    if _check_keywords_in_texts(texts, ['beton', 'concrete', 'stahlbeton']):
+        return WALL_TYPE_CONCRETE
     
     # Check for brick/masonry
-    brick_keywords = ['ziegel', 'brick', 'mauerwerk', 'masonry', 'stein']
-    for text in [wall_name, type_name, type_description]:
-        if text:
-            text_lower = text.lower()
-            if any(kw in text_lower for kw in brick_keywords):
-                return 'Brick'
+    if _check_keywords_in_texts(texts, ['ziegel', 'brick', 'mauerwerk', 'masonry', 'stein']):
+        return WALL_TYPE_BRICK
     
     # Check for wood
-    wood_keywords = ['holz', 'wood', 'timber']
-    for text in [wall_name, type_name, type_description]:
-        if text:
-            text_lower = text.lower()
-            if any(kw in text_lower for kw in wood_keywords):
-                return 'Wood'
+    if _check_keywords_in_texts(texts, ['holz', 'wood', 'timber']):
+        return WALL_TYPE_WOOD
     
-    return 'Unknown'
+    return WALL_TYPE_UNKNOWN
 
 
 def get_wall_description_for_output(wall):
@@ -249,14 +258,15 @@ def analyze_doors(ifc_file):
             
             # Determine how this was detected
             detected_by = []
-            if check_for_gkb_keywords(get_element_name(wall)):
-                detected_by.append("Wall Name")
-            if check_for_gkb_keywords(get_element_type_name(wall)):
-                detected_by.append("Wall Type Name")
-            if check_for_gkb_keywords(get_element_type_description(wall)):
-                detected_by.append("Wall Type Description")
+            if wall_classification == WALL_TYPE_GKB:
+                if check_for_gkb_keywords(get_element_name(wall)):
+                    detected_by.append("Wall Name")
+                if check_for_gkb_keywords(get_element_type_name(wall)):
+                    detected_by.append("Wall Type Name")
+                if check_for_gkb_keywords(get_element_type_description(wall)):
+                    detected_by.append("Wall Type Description")
             
-            if wall_classification == 'GKB':
+            if wall_classification == WALL_TYPE_GKB:
                 print(f"  ✓ GKB Wall detected!")
                 if detected_by:
                     print(f"  Detection method: {', '.join(detected_by)}")
@@ -305,7 +315,7 @@ def print_summary(doors_by_wall_type, doors_without_walls):
         print(f"{wall_type} WALLS - {len(doors)} door(s)")
         print("="*70)
         
-        if wall_type == 'GKB':
+        if wall_type == WALL_TYPE_GKB:
             print("\nThese are doors in plasterboard/drywall (GKB - Gipskarton) walls:\n")
         
         print(f"{'ID':<10} {'Name':<30} {'IFC Type':<15} {'Type Name':<25} {'Detected by'}")
@@ -342,7 +352,7 @@ def print_summary(doors_by_wall_type, doors_without_walls):
         
         print()
     
-    return len(doors_by_wall_type.get('GKB', []))
+    return len(doors_by_wall_type.get(WALL_TYPE_GKB, []))
 
 
 def analyze_ifc_file(file_path):
