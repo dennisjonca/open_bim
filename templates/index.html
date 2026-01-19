@@ -29,7 +29,7 @@
                 </label>
             </div>
             <button type="submit" class="btn btn-primary">Datei(en) hochladen</button>
-            <p class="hint" id="file-count-hint">Sie können mehrere IFC-Dateien gleichzeitig auswählen</p>
+            <!--<p class="hint" id="file-count-hint">Sie können mehrere IFC-Dateien gleichzeitig auswählen</p>-->
         </form>
     </div>
 
@@ -40,14 +40,14 @@
         const fileLabelText = document.getElementById('file-label-text');
         const fileCountHint = document.getElementById('file-count-hint');
         const fileCount = e.target.files.length;
-        
+
         if (fileCount > 0) {
             // Change border to green and update text
             fileLabel.classList.add('files-selected');
-            fileLabelText.textContent = fileCount === 1 
-                ? '1 Datei ausgewählt' 
+            fileLabelText.textContent = fileCount === 1
+                ? '1 Datei ausgewählt'
                 : `${fileCount} Dateien ausgewählt`;
-            
+
             // Update hint to show file count
             fileCountHint.classList.add('file-selected-hint');
         } else {
