@@ -254,99 +254,11 @@
 </div>
 
 <script>
-// Available element types from server
-const availableElements = {{ element_types | tojson }};
-const elementTranslations = {{ element_translations | tojson }};
-
-// Function to get display name for an IFC element (German name / IFC name)
-function getDisplayName(ifcName) {
-    let germanName = ifcName;
-    let ifcTechnicalName = ifcName;
-    
-    // Get German name if available
-    if (elementTranslations[ifcName]) {
-        germanName = elementTranslations[ifcName];
-    } else if (ifcName.startsWith('Ifc')) {
-        germanName = ifcName.substring(3);
-    }
-    
-    // Get IFC technical name (without 'Ifc' prefix)
-    if (ifcName.startsWith('Ifc')) {
-        ifcTechnicalName = ifcName.substring(3);
-    }
-    
-    // Return format: "German name / IFC name"
-    return `${germanName} / ${ifcTechnicalName}`;
-}
-
-// Categorize elements
-const countableElements = [];
-const linearElements = [];
-const areaElements = [];
-const mepElements = [];
-
-availableElements.forEach(elem => {
-    // Add all to countable
-    countableElements.push(elem);
-    
-    // Check if linear (pipes, ducts, cables)
-    if (elem.includes('Segment') || elem.includes('Conduit')) {
-        linearElements.push(elem);
-    }
-    
-    // Check if area (slabs, coverings)
-    if (elem.includes('Slab') || elem.includes('Covering') || elem.includes('Roof')) {
-        areaElements.push(elem);
-    }
-    
-    // Check if MEP
-    if (elem.includes('Pipe') || elem.includes('Duct') || elem.includes('Cable') || 
-        elem.includes('Outlet') || elem.includes('Switch') || elem.includes('Light') ||
-        elem.includes('Sensor') || elem.includes('Valve') || elem.includes('Pump') ||
-        elem.includes('Fan') || elem.includes('Terminal') || elem.includes('Sanitary') ||
-        elem.includes('Distribution') || elem.includes('Electric')) {
-        mepElements.push(elem);
-    }
-});
-
-// Populate dropdowns
-function populateSelect(selectId, elements) {
-    const select = document.getElementById(selectId);
-    if (!select) return;
-    
-    // Clear existing options except first
-    while (select.options.length > 1) {
-        select.remove(1);
-    }
-    
-    // Add available elements with German name / IFC name format
-    elements.forEach(elem => {
-        const option = document.createElement('option');
-        option.value = elem;
-        option.textContent = getDisplayName(elem);
-        select.appendChild(option);
-    });
-}
-
-// Populate all selects on page load
-document.addEventListener('DOMContentLoaded', function() {
-    // Quantity selects
-    populateSelect('quantity_storey_select', countableElements);
-    populateSelect('quantity_total_select', countableElements);
-    populateSelect('quantity_mep_select', mepElements);
-    
-    // Length selects
-    populateSelect('length_storey_select', linearElements);
-    populateSelect('length_total_select', linearElements);
-    populateSelect('length_mep_select', mepElements.filter(e => e.includes('Segment') || e.includes('Conduit')));
-    populateSelect('length_mep_total_select', mepElements.filter(e => e.includes('Segment') || e.includes('Conduit')));
-    
-    // Area selects
-    populateSelect('area_select', areaElements);
-    
-    // Space MEP select
-    populateSelect('space_mep_select', mepElements);
-});
+// Pass data from server to JavaScript
+window.ifcQueryData = {
+    availableElements: {{ element_types | tojson }},
+    elementTranslations: {{ element_translations | tojson }}
+};
 </script>
 <script src="{{ url_for('static', filename='js/query_simple.js') }}"></script>
 {% endblock %}
