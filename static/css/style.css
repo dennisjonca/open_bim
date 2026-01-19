@@ -45,12 +45,14 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 2rem;
 }
 
 .logo-section {
     display: flex;
     align-items: center;
     gap: 1rem;
+    flex: 0 0 auto;
 }
 
 .company-logo {
@@ -71,6 +73,9 @@ body {
     font-family: 'Martel';
     font-weight: 900; /* Heavy */
     color: var(--primary-color);
+    margin: 0;
+    flex: 1 1 auto;
+    text-align: center;
 }
 
 .nav-links {

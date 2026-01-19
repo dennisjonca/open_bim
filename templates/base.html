@@ -13,8 +13,8 @@
             <div class="logo-section">
                 <img src="{{ url_for('static', filename='images/logo1.jpg') }}" alt="Primary Company Logo" class="company-logo company-logo-1">
                 <img src="{{ url_for('static', filename='images/logo2.jpg') }}" alt="Secondary Company Logo" class="company-logo company-logo-2">
-                <h1 class="logo">IFC Abfrage-Tool</h1>
             </div>
+            <h1 class="logo">IFC Abfrage-Tool</h1>
             <ul class="nav-links">
                 <li><a href="{{ url_for('index') }}">Start</a></li>
                 {% if session.get('ifc_filenames') or session.get('ifc_filename') %}
