@@ -54,6 +54,103 @@ http://localhost:5000
 - "Welches Geschoss hat die höchste Installationsdichte?"
 - "Gibt es in jedem Büroraum Steckdosen?"
 
+## Brüstungskanal Test-Programm (canal_test.py)
+
+Ein spezialisiertes Test-Programm, das die Grenzen der ifcopenshell-API auslotet, indem es nach Brüstungskanälen (Parapet Channels) in IFC-Dateien sucht.
+
+### Was ist ein Brüstungskanal?
+
+Ein Brüstungskanal ist ein Kabelkanal oder Kabelträgersegment, das auf Brüstungshöhe (ca. 0,8-1,3m vom Boden) installiert wird. Diese werden häufig in Bürogebäuden verwendet, um Steckdosen und Datenkabel an den Wänden zu führen.
+
+### Funktionen
+
+- **Sucht nach IfcCableCarrierSegment-Objekten** in IFC-Dateien
+- **Mehrere Erkennungsmethoden**:
+  - Namensbasierte Erkennung (sucht nach "Brüstungskanal", "Brüstung", "parapet")
+  - Höhenbasierte Erkennung (prüft Installationshöhe zwischen 0,8-1,3m)
+  - Prüfung von Eigenschaften und Typ-Informationen
+- **Detaillierte Terminalausgabe** mit allen Analyseschritten
+- **Testet verschiedene IFC-Element-Typen**:
+  - IfcCableCarrierSegment (Kabelträgersegmente)
+  - IfcCableSegment (Kabelsegmente)
+  - IfcBuildingElementProxy (generische Elemente)
+  - IfcFlowSegment (Fließsegmente)
+- **Dokumentiert API-Grenzen und -Erkenntnisse**
+
+### Verwendung
+
+```bash
+# Mit spezifischer IFC-Datei
+python canal_test.py pfad/zur/datei.ifc
+
+# Sucht automatisch nach IFC-Dateien im aktuellen Verzeichnis
+python canal_test.py
+
+# Hilfe anzeigen
+python canal_test.py --help
+```
+
+### Beispielausgabe
+
+```
+======================================================================
+PARAPET CHANNEL (BRÜSTUNGSKANAL) ANALYSIS
+======================================================================
+
+Analyzing file: beispiel.ifc
+
+✓ Successfully opened IFC file
+  IFC Schema: IFC4
+  Project Name: Bürogebäude
+
+----------------------------------------------------------------------
+ANALYSIS STRATEGY:
+----------------------------------------------------------------------
+1. Search IfcCableCarrierSegment objects
+2. Check names for 'Brüstungskanal' or 'parapet' keywords
+3. Check height properties (parapet range: 0.8-1.3m)
+4. Also check IfcCableSegment and generic elements
+----------------------------------------------------------------------
+
+======================================================================
+SEARCHING FOR CABLE CARRIER SEGMENTS (IfcCableCarrierSegment)
+======================================================================
+
+Found 15 IfcCableCarrierSegment objects in total.
+
+--- Cable Carrier #1 ---
+  ID: 12345
+  Name: Brüstungskanal-BK-01
+  ✓ Name contains parapet keywords!
+  Installation Height: 1.100 m
+  ✓ Height is within parapet range (0.8-1.3m)!
+  
+  >>> POTENTIAL PARAPET CHANNEL DETECTED! <<<
+
+...
+
+======================================================================
+SUMMARY: PARAPET CHANNEL DETECTION RESULTS
+======================================================================
+
+Total parapet channel candidates found: 3
+
+1. ID: 12345
+   Name: Brüstungskanal-BK-01
+   Height: 1.100 m
+   Detected by: Name keywords, Height range
+
+...
+```
+
+### Zweck
+
+Dieses Programm wurde entwickelt, um:
+- Die Möglichkeiten und Grenzen der ifcopenshell-API zu testen
+- Zu zeigen, wie spezifische Objekttypen in IFC-Dateien gefunden werden können
+- Verschiedene Erkennungsstrategien für BIM-Objekte zu demonstrieren
+- Als Beispiel für spezialisierte IFC-Analysetools zu dienen
+
 ## IFC-Datei-Analyser (Kommandozeile)
 
 Ein Python-Skript, das die ifcopenshell-API verwendet, um IFC-Dateien (Industry Foundation Classes) zu lesen und zu analysieren. Das Skript zählt verschiedene BIM-Objekte wie Wände, Türen, Fenster, Decken, Träger, Stützen und mehr.
