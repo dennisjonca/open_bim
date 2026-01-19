@@ -609,3 +609,321 @@ def get_all_objects_by_storey(ifc_file):
         storey_objects[storey][object_type] += 1
     
     return dict(storey_objects)
+
+
+# ============================================================================
+# Special Query Functions for Door Analysis and Parapet Channels
+# ============================================================================
+
+# Wall type constants (matching door_test.py)
+WALL_TYPE_GKB = 'GKB'
+WALL_TYPE_CONCRETE = 'Concrete'
+WALL_TYPE_BRICK = 'Brick'
+WALL_TYPE_WOOD = 'Wood'
+WALL_TYPE_UNKNOWN = 'Unknown'
+
+# Keyword constants for wall type detection
+GKB_KEYWORDS = [
+    'gkb', 'gipskarton', 'gipswand', 'trockenbau', 'trockenbauwand',
+    'drywall', 'plasterboard', 'gypsum board', 'gypsum wall',
+]
+CONCRETE_KEYWORDS = ['beton', 'concrete', 'stahlbeton']
+BRICK_KEYWORDS = ['ziegel', 'brick', 'mauerwerk', 'masonry', 'stein']
+WOOD_KEYWORDS = ['holz', 'wood', 'timber']
+
+
+def _get_element_type_name(element):
+    """Get the type name of an element if it exists."""
+    try:
+        if hasattr(element, 'IsTypedBy') and element.IsTypedBy:
+            for rel in element.IsTypedBy:
+                if hasattr(rel, 'RelatingType'):
+                    type_obj = rel.RelatingType
+                    type_name = type_obj.Name if hasattr(type_obj, 'Name') and type_obj.Name else None
+                    return type_name
+    except Exception:
+        pass
+    return None
+
+
+def _get_element_type_description(element):
+    """Get the description of an element's type if it exists."""
+    try:
+        if hasattr(element, 'IsTypedBy') and element.IsTypedBy:
+            for rel in element.IsTypedBy:
+                if hasattr(rel, 'RelatingType'):
+                    type_obj = rel.RelatingType
+                    description = type_obj.Description if hasattr(type_obj, 'Description') and type_obj.Description else None
+                    return description
+    except Exception:
+        pass
+    return None
+
+
+def _get_wall_from_door(door):
+    """
+    Find the wall that contains a door by traversing the relationship:
+    Door -> FillsVoids -> IfcOpeningElement -> VoidsElements -> Wall
+    
+    Returns tuple: (wall_element, opening_element) or (None, None)
+    """
+    try:
+        if hasattr(door, 'FillsVoids') and door.FillsVoids:
+            for rel in door.FillsVoids:
+                if hasattr(rel, 'RelatingOpeningElement'):
+                    opening = rel.RelatingOpeningElement
+                    if hasattr(opening, 'VoidsElements') and opening.VoidsElements:
+                        for void_rel in opening.VoidsElements:
+                            if hasattr(void_rel, 'RelatingBuildingElement'):
+                                wall = void_rel.RelatingBuildingElement
+                                return (wall, opening)
+    except Exception:
+        pass
+    return (None, None)
+
+
+def _check_keywords_in_texts(texts, keywords):
+    """Helper function to check if any keyword is found in any of the provided texts."""
+    for text in texts:
+        if text:
+            text_lower = text.lower()
+            if any(kw in text_lower for kw in keywords):
+                return True
+    return False
+
+
+def _get_wall_type_classification(wall):
+    """
+    Classify the wall type based on its name, type name, and description.
+    
+    Returns:
+        - WALL_TYPE_GKB if it's a plasterboard/drywall
+        - WALL_TYPE_CONCRETE if it's concrete
+        - WALL_TYPE_BRICK if it's brick/masonry
+        - WALL_TYPE_WOOD if it's wood
+        - WALL_TYPE_UNKNOWN if classification cannot be determined
+    """
+    # Get wall name
+    wall_name = wall.Name if hasattr(wall, 'Name') and wall.Name else None
+    if not wall_name:
+        wall_name = wall.LongName if hasattr(wall, 'LongName') and wall.LongName else None
+    
+    type_name = _get_element_type_name(wall)
+    type_description = _get_element_type_description(wall)
+    texts = [wall_name, type_name, type_description]
+    
+    # Check for GKB keywords
+    if _check_keywords_in_texts(texts, GKB_KEYWORDS):
+        return WALL_TYPE_GKB
+    
+    # Check for concrete
+    if _check_keywords_in_texts(texts, CONCRETE_KEYWORDS):
+        return WALL_TYPE_CONCRETE
+    
+    # Check for brick/masonry
+    if _check_keywords_in_texts(texts, BRICK_KEYWORDS):
+        return WALL_TYPE_BRICK
+    
+    # Check for wood
+    if _check_keywords_in_texts(texts, WOOD_KEYWORDS):
+        return WALL_TYPE_WOOD
+    
+    return WALL_TYPE_UNKNOWN
+
+
+def count_doors_by_wall_type(ifc_file):
+    """
+    Count doors grouped by surrounding wall type (GKB, Concrete, Brick, etc.).
+    Based on functionality from door_test.py.
+    
+    Returns:
+        Dictionary mapping wall types to door counts
+        Format: {wall_type: count}
+    """
+    doors = ifc_file.by_type('IfcDoor')
+    wall_type_counts = defaultdict(int)
+    
+    for door in doors:
+        wall, _ = _get_wall_from_door(door)
+        
+        if wall:
+            wall_classification = _get_wall_type_classification(wall)
+            wall_type_counts[wall_classification] += 1
+        else:
+            wall_type_counts['No Wall Association'] += 1
+    
+    return dict(wall_type_counts)
+
+
+# Parapet channel detection constants (matching canal_test.py)
+PARAPET_HEIGHT_MIN = 0.8  # meters
+PARAPET_HEIGHT_MAX = 1.3  # meters
+
+
+def _check_name_for_parapet_keywords(name):
+    """
+    Check if a name contains keywords related to parapet channels.
+    Returns True if parapet-related keywords are found.
+    """
+    if not name:
+        return False
+    
+    name_lower = name.lower()
+    
+    # German and English keywords
+    keywords = [
+        'brüstungskanal', 'bruestungskanal', 'brüstung',
+        'parapet', 'parapet channel', 'parapet canal', 'parapet cable',
+    ]
+    
+    return any(keyword in name_lower for keyword in keywords)
+
+
+def _get_element_height_from_properties(element):
+    """
+    Try to get the installation height of an element from its properties.
+    Returns height in meters, or None if not found.
+    """
+    try:
+        if hasattr(element, 'IsDefinedBy') and element.IsDefinedBy:
+            for definition in element.IsDefinedBy:
+                if definition.is_a('IfcRelDefinesByProperties'):
+                    prop_def = definition.RelatingPropertyDefinition
+                    
+                    if prop_def.is_a('IfcPropertySet'):
+                        for prop in prop_def.HasProperties:
+                            prop_name = prop.Name.lower() if hasattr(prop, 'Name') and prop.Name else ""
+                            if any(keyword in prop_name for keyword in ['height', 'höhe', 'elevation', 'level']):
+                                if hasattr(prop, 'NominalValue') and prop.NominalValue:
+                                    try:
+                                        height = float(prop.NominalValue.wrappedValue)
+                                        return height
+                                    except (ValueError, TypeError, AttributeError):
+                                        pass
+    except Exception:
+        pass
+    return None
+
+
+def get_parapet_channels_by_type(ifc_file):
+    """
+    Find and count parapet channels (Brüstungskanäle) grouped by element type.
+    Based on functionality from canal_test.py.
+    
+    Returns:
+        Dictionary with element types as keys and list of parapet info dicts as values
+        Format: {
+            element_type: [
+                {
+                    'id': element_id,
+                    'name': element_name,
+                    'type_name': type_name,
+                    'height': height_in_meters,
+                    'length': length_in_meters,
+                    'detected_by_name': bool,
+                    'detected_by_height': bool
+                },
+                ...
+            ]
+        }
+    """
+    parapet_channels = defaultdict(list)
+    
+    # Search in different element types that could be parapet channels
+    element_types_to_check = [
+        'IfcCableCarrierSegment',
+        'IfcCableSegment',
+        'IfcBuildingElementProxy',
+        'IfcFlowSegment'
+    ]
+    
+    for elem_type in element_types_to_check:
+        elements = ifc_file.by_type(elem_type)
+        
+        for element in elements:
+            # Get element info
+            element_name = element.Name if hasattr(element, 'Name') and element.Name else None
+            if not element_name:
+                element_name = element.LongName if hasattr(element, 'LongName') and element.LongName else f"Element #{element.id()}"
+            
+            type_name = _get_element_type_name(element)
+            
+            # Check 1: Name-based detection
+            is_parapet_by_name = False
+            if _check_name_for_parapet_keywords(element_name):
+                is_parapet_by_name = True
+            if type_name and _check_name_for_parapet_keywords(type_name):
+                is_parapet_by_name = True
+            
+            # Check 2: Height-based detection
+            height = _get_element_height_from_properties(element)
+            is_parapet_by_height = False
+            if height is not None and PARAPET_HEIGHT_MIN <= height <= PARAPET_HEIGHT_MAX:
+                is_parapet_by_height = True
+            
+            # If detected by name or height, add to results
+            if is_parapet_by_name or is_parapet_by_height:
+                length = get_element_length(element)
+                
+                parapet_info = {
+                    'id': element.id(),
+                    'name': element_name,
+                    'type_name': type_name,
+                    'height': height,
+                    'length': length,
+                    'detected_by_name': is_parapet_by_name,
+                    'detected_by_height': is_parapet_by_height
+                }
+                
+                parapet_channels[elem_type].append(parapet_info)
+    
+    return dict(parapet_channels)
+
+
+def get_parapet_channels_summary(ifc_file):
+    """
+    Get a summary of parapet channels with total counts and lengths.
+    
+    Returns:
+        Dictionary with summary information:
+        {
+            'by_type': {element_type: {'count': int, 'total_length': float}},
+            'total_count': int,
+            'total_length': float
+        }
+    """
+    parapet_channels = get_parapet_channels_by_type(ifc_file)
+    
+    summary = {
+        'by_type': {},
+        'total_count': 0,
+        'total_length': 0.0
+    }
+    
+    # Track unique IDs to avoid double counting
+    seen_ids = set()
+    
+    for elem_type, channels in parapet_channels.items():
+        type_count = 0
+        type_length = 0.0
+        
+        for channel in channels:
+            channel_id = channel['id']
+            
+            # Only count unique elements
+            if channel_id not in seen_ids:
+                seen_ids.add(channel_id)
+                type_count += 1
+                summary['total_count'] += 1
+                
+                if channel['length'] is not None:
+                    type_length += channel['length']
+                    summary['total_length'] += channel['length']
+        
+        if type_count > 0:
+            summary['by_type'][elem_type] = {
+                'count': type_count,
+                'total_length': type_length
+            }
+    
+    return summary
