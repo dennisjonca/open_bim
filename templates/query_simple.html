@@ -252,16 +252,25 @@
 const availableElements = {{ element_types | tojson }};
 const elementTranslations = {{ element_translations | tojson }};
 
-// Function to get German name for an IFC element
-function getGermanName(ifcName) {
+// Function to get display name for an IFC element (German name / IFC name)
+function getDisplayName(ifcName) {
+    let germanName = ifcName;
+    let ifcTechnicalName = ifcName;
+    
+    // Get German name if available
     if (elementTranslations[ifcName]) {
-        return elementTranslations[ifcName];
+        germanName = elementTranslations[ifcName];
+    } else if (ifcName.startsWith('Ifc')) {
+        germanName = ifcName.substring(3);
     }
-    // Fallback: Remove 'Ifc' prefix only if it starts with 'Ifc'
+    
+    // Get IFC technical name (without 'Ifc' prefix)
     if (ifcName.startsWith('Ifc')) {
-        return ifcName.substring(3);
+        ifcTechnicalName = ifcName.substring(3);
     }
-    return ifcName;
+    
+    // Return format: "German name / IFC name"
+    return `${germanName} / ${ifcTechnicalName}`;
 }
 
 // Categorize elements
@@ -304,11 +313,11 @@ function populateSelect(selectId, elements) {
         select.remove(1);
     }
     
-    // Add available elements with German names
+    // Add available elements with German name / IFC name format
     elements.forEach(elem => {
         const option = document.createElement('option');
         option.value = elem;
-        option.textContent = getGermanName(elem);
+        option.textContent = getDisplayName(elem);
         select.appendChild(option);
     });
 }
