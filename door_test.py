@@ -39,6 +39,21 @@ WALL_TYPE_BRICK = 'Brick'
 WALL_TYPE_WOOD = 'Wood'
 WALL_TYPE_UNKNOWN = 'Unknown'
 
+# Keyword constants for wall type detection
+GKB_KEYWORDS = [
+    # German keywords
+    'gkb',
+    'gipskarton',
+    'gipswand',
+    'trockenbau',
+    'trockenbauwand',
+    # English keywords
+    'drywall',
+    'plasterboard',
+    'gypsum board',
+    'gypsum wall',
+]
+
 
 def find_ifc_files():
     """Find all IFC files in the current directory."""
@@ -101,27 +116,7 @@ def check_for_gkb_keywords(text):
         return False
     
     text_lower = text.lower()
-    
-    # German keywords
-    gkb_keywords = [
-        'gkb',
-        'gipskarton',
-        'gipswand',
-        'trockenbau',
-        'trockenbauwand',
-    ]
-    
-    # English keywords
-    english_keywords = [
-        'drywall',
-        'plasterboard',
-        'gypsum board',
-        'gypsum wall',
-    ]
-    
-    all_keywords = gkb_keywords + english_keywords
-    
-    return any(keyword in text_lower for keyword in all_keywords)
+    return any(keyword in text_lower for keyword in GKB_KEYWORDS)
 
 
 def get_wall_from_door(door):
@@ -178,9 +173,7 @@ def get_wall_type_classification(wall):
     texts = [wall_name, type_name, type_description]
     
     # Check for GKB keywords
-    if check_for_gkb_keywords(wall_name) or \
-       check_for_gkb_keywords(type_name) or \
-       check_for_gkb_keywords(type_description):
+    if _check_keywords_in_texts(texts, GKB_KEYWORDS):
         return WALL_TYPE_GKB
     
     # Check for concrete
