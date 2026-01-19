@@ -54,9 +54,15 @@ body {
 }
 
 .company-logo {
-    height: 50px;
+    height: 3.125rem; /* 50px */
     width: auto;
     object-fit: contain;
+}
+
+@media (max-width: 768px) {
+    .company-logo {
+        height: 2.5rem; /* 40px on smaller screens */
+    }
 }
 
 .logo {
