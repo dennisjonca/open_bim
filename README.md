@@ -67,7 +67,7 @@ Ein Brüstungskanal ist ein Kabelkanal oder Kabelträgersegment, das auf Brüstu
 - **Sucht nach IfcCableCarrierSegment-Objekten** in IFC-Dateien
 - **Mehrere Erkennungsmethoden**:
   - Namensbasierte Erkennung (sucht nach "Brüstungskanal", "Brüstung", "parapet")
-  - Höhenbasierte Erkennung (prüft Installationshöhe zwischen 0,8-1,3m)
+  - Höhenbasierte Erkennung (prüft Installationshöhe zwischen 0.8-1.3m)
   - Prüfung von Eigenschaften und Typ-Informationen
 - **Detaillierte Terminalausgabe** mit allen Analyseschritten
 - **Testet verschiedene IFC-Element-Typen**:
