@@ -14,12 +14,6 @@
             {% endfor %}
             </ul>
         </div>
-        <div class="complete-list-button-container">
-            <a href="{{ url_for('complete_object_list') }}" class="btn btn-primary btn-complete-list">
-                Vollständige Objektliste anzeigen
-            </a>
-            <p class="hint">Zeigt alle IFC-Objekte mit Anzahl, sortiert nach Geschoss</p>
-        </div>
     </div>
 
     <div class="query-interface">
@@ -251,6 +245,13 @@
         <h3>Abfrageergebnisse</h3>
         <div id="results-content"></div>
     </div>
+</div>
+
+<div class="complete-list-button-container">
+            <a href="{{ url_for('complete_object_list') }}" class="btn btn-primary btn-complete-list">
+                Vollständige Objektliste anzeigen
+            </a>
+            <p class="hint">Zeigt alle IFC-Objekte mit Anzahl, sortiert nach Geschoss</p>
 </div>
 
 <script>
