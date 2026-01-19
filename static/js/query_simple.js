@@ -79,6 +79,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const tabButtons = document.querySelectorAll('.tab-button');
     const categoryPanels = document.querySelectorAll('.category-panel');
     const viewPanels = document.querySelectorAll('.view-panel');
+    const categoryTabsContainer = document.querySelector('.category-tabs');
+    const categoryTabsHeading = document.querySelector('.query-sidebar h3:nth-of-type(2)');
 
     let currentView = 'storey';
     let currentCategory = 'quantity';
@@ -92,6 +94,17 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update active button
             viewModeButtons.forEach(btn => btn.classList.remove('active'));
             this.classList.add('active');
+
+            // Hide/show category tabs based on view mode
+            if (view === 'special') {
+                // Hide category tabs for special query view
+                if (categoryTabsContainer) categoryTabsContainer.style.display = 'none';
+                if (categoryTabsHeading) categoryTabsHeading.style.display = 'none';
+            } else {
+                // Show category tabs for storey view
+                if (categoryTabsContainer) categoryTabsContainer.style.display = 'flex';
+                if (categoryTabsHeading) categoryTabsHeading.style.display = 'block';
+            }
 
             // Update visible panels
             updateVisiblePanels();
@@ -114,23 +127,44 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function updateVisiblePanels() {
-        // Hide all category panels
-        categoryPanels.forEach(panel => panel.classList.remove('active'));
-        
-        // Show the current category panel
-        const activeCategory = document.querySelector(`.category-panel[data-category="${currentCategory}"]`);
-        if (activeCategory) {
-            activeCategory.classList.add('active');
+        if (currentView === 'special') {
+            // For special view mode, show only the first category panel
+            // (since all special queries are the same across categories)
+            categoryPanels.forEach(panel => panel.classList.remove('active'));
+            const firstCategoryPanel = document.querySelector('.category-panel[data-category="quantity"]');
+            if (firstCategoryPanel) {
+                firstCategoryPanel.classList.add('active');
+                
+                // Show the special view panel
+                const categoryViewPanels = firstCategoryPanel.querySelectorAll('.view-panel');
+                categoryViewPanels.forEach(panel => {
+                    if (panel.dataset.view === 'special') {
+                        panel.classList.add('active');
+                    } else {
+                        panel.classList.remove('active');
+                    }
+                });
+            }
+        } else {
+            // For storey view mode, use normal category switching
+            // Hide all category panels
+            categoryPanels.forEach(panel => panel.classList.remove('active'));
+            
+            // Show the current category panel
+            const activeCategory = document.querySelector(`.category-panel[data-category="${currentCategory}"]`);
+            if (activeCategory) {
+                activeCategory.classList.add('active');
 
-            // Within the active category, manage view panels
-            const categoryViewPanels = activeCategory.querySelectorAll('.view-panel');
-            categoryViewPanels.forEach(panel => {
-                if (panel.dataset.view === currentView) {
-                    panel.classList.add('active');
-                } else {
-                    panel.classList.remove('active');
-                }
-            });
+                // Within the active category, manage view panels
+                const categoryViewPanels = activeCategory.querySelectorAll('.view-panel');
+                categoryViewPanels.forEach(panel => {
+                    if (panel.dataset.view === currentView) {
+                        panel.classList.add('active');
+                    } else {
+                        panel.classList.remove('active');
+                    }
+                });
+            }
         }
     }
 
