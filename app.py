@@ -161,6 +161,12 @@ def get_ifc_file():
 
 def get_ifc_files():
     """Alle geladenen IFC-Dateien aus der Sitzung abrufen."""
+    # Handle backward compatibility - convert old single file format to new format
+    if 'ifc_filename' in session and 'ifc_filenames' not in session:
+        session['ifc_filenames'] = [session['ifc_filename']]
+        session.pop('ifc_filename', None)
+        session.modified = True
+    
     if 'ifc_filenames' not in session or not session['ifc_filenames']:
         return {}
     
@@ -176,9 +182,29 @@ def get_ifc_files():
     return ifc_files
 
 
+def sort_storeys_by_elevation(storeys, storey_order):
+    """
+    Helper function to sort storey names by their elevation.
+    
+    Args:
+        storeys: List or set of storey names
+        storey_order: Dictionary mapping storey names to elevations
+    
+    Returns:
+        Sorted list of storey names
+    """
+    return sorted(storeys, key=lambda x: (storey_order.get(x) is None, storey_order.get(x) if storey_order.get(x) is not None else float('inf')))
+
+
 @app.route('/')
 def index():
     """Startseite - IFC-Datei hochladen."""
+    # Handle backward compatibility
+    if 'ifc_filename' in session and 'ifc_filenames' not in session:
+        session['ifc_filenames'] = [session['ifc_filename']]
+        session.pop('ifc_filename', None)
+        session.modified = True
+    
     has_files = 'ifc_filenames' in session and session['ifc_filenames']
     filenames = session.get('ifc_filenames', [])
     return render_template('index.html', has_files=has_files, filenames=filenames)
@@ -231,6 +257,12 @@ def upload_file():
 @app.route('/query')
 def query_page():
     """Haupt-Abfrage-Oberfläche."""
+    # Handle backward compatibility
+    if 'ifc_filename' in session and 'ifc_filenames' not in session:
+        session['ifc_filenames'] = [session['ifc_filename']]
+        session.pop('ifc_filename', None)
+        session.modified = True
+    
     if 'ifc_filenames' not in session or not session['ifc_filenames']:
         flash('Bitte laden Sie zuerst eine IFC-Datei hoch', 'warning')
         return redirect(url_for('index'))
@@ -260,6 +292,12 @@ def query_page():
 @app.route('/api/query', methods=['POST'])
 def execute_query():
     """Eine Abfrage ausführen und Ergebnisse als JSON zurückgeben."""
+    # Handle backward compatibility
+    if 'ifc_filename' in session and 'ifc_filenames' not in session:
+        session['ifc_filenames'] = [session['ifc_filename']]
+        session.pop('ifc_filename', None)
+        session.modified = True
+    
     if 'ifc_filenames' not in session or not session['ifc_filenames']:
         return jsonify({'error': 'Keine IFC-Datei geladen'}), 400
     
@@ -591,8 +629,8 @@ def execute_query_type_multi(ifc_files, query_type, params):
                 if storey_name not in storey_order:
                     storey_order[storey_name] = elevation
         
-        # Sort storeys by elevation
-        sorted_storeys = sorted(all_storeys, key=lambda x: (storey_order.get(x) is None, storey_order.get(x) if storey_order.get(x) is not None else float('inf')))
+        # Sort storeys by elevation using helper function
+        sorted_storeys = sort_storeys_by_elevation(all_storeys, storey_order)
         
         # Build data with file name columns
         headers = ['Geschoss'] + list(ifc_files.keys())
@@ -668,7 +706,7 @@ def execute_query_type_multi(ifc_files, query_type, params):
                 if storey_name not in storey_order:
                     storey_order[storey_name] = elevation
         
-        sorted_storeys = sorted(all_storeys, key=lambda x: (storey_order.get(x) is None, storey_order.get(x) if storey_order.get(x) is not None else float('inf')))
+        sorted_storeys = sort_storeys_by_elevation(all_storeys, storey_order)
         
         headers = ['Geschoss'] + list(ifc_files.keys())
         data = []
@@ -699,7 +737,7 @@ def execute_query_type_multi(ifc_files, query_type, params):
                 if storey_name not in storey_order:
                     storey_order[storey_name] = elevation
         
-        sorted_storeys = sorted(all_storeys, key=lambda x: (storey_order.get(x) is None, storey_order.get(x) if storey_order.get(x) is not None else float('inf')))
+        sorted_storeys = sort_storeys_by_elevation(all_storeys, storey_order)
         
         headers = ['Geschoss'] + list(ifc_files.keys())
         data = []
