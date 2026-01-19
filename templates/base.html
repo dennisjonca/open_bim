@@ -10,7 +10,11 @@
 <body>
     <nav class="navbar">
         <div class="container">
-            <h1 class="logo">IFC Abfrage-Tool</h1>
+            <div class="logo-section">
+                <img src="{{ url_for('static', filename='images/logo1.jpg') }}" alt="Company Logo 1" class="company-logo">
+                <img src="{{ url_for('static', filename='images/logo2.jpg') }}" alt="Company Logo 2" class="company-logo">
+                <h1 class="logo">IFC Abfrage-Tool</h1>
+            </div>
             <ul class="nav-links">
                 <li><a href="{{ url_for('index') }}">Start</a></li>
                 {% if session.get('ifc_filenames') or session.get('ifc_filename') %}
