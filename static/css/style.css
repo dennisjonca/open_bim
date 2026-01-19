@@ -6,20 +6,20 @@
 }
 
 :root {
-    --primary-color: #2563eb;
+    --primary-color: #144E9B;
     --secondary-color: #64748b;
     --success-color: #10b981;
     --warning-color: #f59e0b;
     --error-color: #ef4444;
     --background: #f8fafc;
     --card-background: #ffffff;
-    --text-primary: #0f172a;
+    --text-primary: #144E9B;
     --text-secondary: #475569;
     --border-color: #e2e8f0;
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-family: 'Open Sans', sans-serif;
     background: var(--background);
     color: var(--text-primary);
     line-height: 1.6;
@@ -59,11 +59,11 @@ body {
 }
 
 .company-logo-1 {
-    height: 1.5rem; /* Size for first logo - adjust as needed */
+    height: 2.5rem; /* Size for first logo - adjust as needed */
 }
 
 .company-logo-2 {
-    height: 1.5rem; /* Size for second logo - adjust as needed */
+    height: 3.5rem; /* Size for second logo - adjust as needed */
 }
 
 .logo {
@@ -76,7 +76,7 @@ body {
     display: flex;
     list-style: none;
     gap: 1.5rem;
-    align-items: center;
+    align-items: left;
 }
 
 .nav-links a {
@@ -754,4 +754,3 @@ footer {
     padding: 1rem 0.75rem;
     border-bottom: none;
 }
-
