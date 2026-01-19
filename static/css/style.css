@@ -54,9 +54,16 @@ body {
 }
 
 .company-logo {
-    height: 1.5rem; /* Match title font size */
     width: auto;
     object-fit: contain;
+}
+
+.company-logo-1 {
+    height: 1.5rem; /* Size for first logo - adjust as needed */
+}
+
+.company-logo-2 {
+    height: 1.5rem; /* Size for second logo - adjust as needed */
 }
 
 .logo {
