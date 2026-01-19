@@ -73,7 +73,7 @@ body {
     font-family: 'Martel';
     font-weight: 900; /* Heavy */
     color: var(--primary-color);
-    margin: 0;
+    margin-left: 10rem;
     flex: 1 1 auto;
     text-align: center;
 }
