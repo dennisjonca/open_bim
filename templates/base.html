@@ -11,10 +11,10 @@
     <nav class="navbar">
         <div class="container">
             <div class="logo-section">
-                <img src="{{ url_for('static', filename='images/logo1.jpg') }}" alt="Primary Company Logo" class="company-logo company-logo-1">
-                <img src="{{ url_for('static', filename='images/logo2.jpg') }}" alt="Secondary Company Logo" class="company-logo company-logo-2">
+                <!--<h1 class="logo">IFC Abfrage-Tool</h1>-->
+                <img src="{{ url_for('static', filename='images/MD_zentrum_hamburg.jpg') }}" alt="Primary Company Logo" class="company-logo company-logo-1">
+                <img src="{{ url_for('static', filename='images/HAW_Marke_RGB_300dpi.jpg') }}" alt="Secondary Company Logo" class="company-logo company-logo-2">
             </div>
-            <h1 class="logo">IFC Abfrage-Tool</h1>
             <ul class="nav-links">
                 <li><a href="{{ url_for('index') }}">Start</a></li>
                 {% if session.get('ifc_filenames') or session.get('ifc_filename') %}
@@ -41,7 +41,7 @@
 
     <footer>
         <div class="container">
-            <p>&copy; 2025 IFC Abfrage-Tool - Erstellt mit Flask und ifcopenshell</p>
+            <p>&copy; 2026 IFC Abfrage-Tool - Erstellt mit Flask und ifcopenshell</p>
         </div>
     </footer>
 
