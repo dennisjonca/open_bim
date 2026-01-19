@@ -75,10 +75,28 @@ document.addEventListener('DOMContentLoaded', function() {
     // Area selects
     populateSelect('area_select', areaElements);
 
+    const viewModeButtons = document.querySelectorAll('.view-mode-button');
     const tabButtons = document.querySelectorAll('.tab-button');
     const categoryPanels = document.querySelectorAll('.category-panel');
+    const viewPanels = document.querySelectorAll('.view-panel');
 
+    let currentView = 'storey';
     let currentCategory = 'quantity';
+
+    // View mode switching
+    viewModeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const view = this.dataset.view;
+            currentView = view;
+
+            // Update active button
+            viewModeButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+
+            // Update visible panels
+            updateVisiblePanels();
+        });
+    });
 
     // Category switching
     tabButtons.forEach(button => {
@@ -103,6 +121,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const activeCategory = document.querySelector(`.category-panel[data-category="${currentCategory}"]`);
         if (activeCategory) {
             activeCategory.classList.add('active');
+
+            // Within the active category, manage view panels
+            const categoryViewPanels = activeCategory.querySelectorAll('.view-panel');
+            categoryViewPanels.forEach(panel => {
+                if (panel.dataset.view === currentView) {
+                    panel.classList.add('active');
+                } else {
+                    panel.classList.remove('active');
+                }
+            });
         }
     }
 
