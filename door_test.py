@@ -54,6 +54,10 @@ GKB_KEYWORDS = [
     'gypsum wall',
 ]
 
+CONCRETE_KEYWORDS = ['beton', 'concrete', 'stahlbeton']
+BRICK_KEYWORDS = ['ziegel', 'brick', 'mauerwerk', 'masonry', 'stein']
+WOOD_KEYWORDS = ['holz', 'wood', 'timber']
+
 
 def find_ifc_files():
     """Find all IFC files in the current directory."""
@@ -177,15 +181,15 @@ def get_wall_type_classification(wall):
         return WALL_TYPE_GKB
     
     # Check for concrete
-    if _check_keywords_in_texts(texts, ['beton', 'concrete', 'stahlbeton']):
+    if _check_keywords_in_texts(texts, CONCRETE_KEYWORDS):
         return WALL_TYPE_CONCRETE
     
     # Check for brick/masonry
-    if _check_keywords_in_texts(texts, ['ziegel', 'brick', 'mauerwerk', 'masonry', 'stein']):
+    if _check_keywords_in_texts(texts, BRICK_KEYWORDS):
         return WALL_TYPE_BRICK
     
     # Check for wood
-    if _check_keywords_in_texts(texts, ['holz', 'wood', 'timber']):
+    if _check_keywords_in_texts(texts, WOOD_KEYWORDS):
         return WALL_TYPE_WOOD
     
     return WALL_TYPE_UNKNOWN
