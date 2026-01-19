@@ -663,6 +663,114 @@ def execute_query_type(ifc_file, query_type, params):
             'unit': 'Elemente'
         }
     
+    # Kategorie 10: Spezielle Abfragen (Special Queries)
+    elif query_type == 'doors_by_wall_type':
+        counts = ifc_queries.count_doors_by_wall_type(ifc_file)
+        return {
+            'type': 'table',
+            'title': 'Türen nach Wandtyp',
+            'headers': ['Wandtyp', 'Anzahl Türen'],
+            'data': sorted([[k, v] for k, v in counts.items()], key=lambda x: x[1], reverse=True)
+        }
+    
+    elif query_type == 'parapet_channels_summary':
+        summary = ifc_queries.get_parapet_channels_summary(ifc_file)
+        
+        data = []
+        for elem_type, info in summary['by_type'].items():
+            # Get German element name
+            german_name = get_german_element_name(elem_type)
+            data.append([
+                german_name,
+                info['count'],
+                round(info['total_length'], 2) if info['total_length'] > 0 else 'N/A'
+            ])
+        
+        # Add total row
+        if summary['total_count'] > 0:
+            data.append([
+                'GESAMT',
+                summary['total_count'],
+                round(summary['total_length'], 2) if summary['total_length'] > 0 else 'N/A'
+            ])
+        
+        return {
+            'type': 'table',
+            'title': 'Brüstungskanäle nach Elementtyp',
+            'headers': ['Elementtyp', 'Anzahl', 'Gesamtlänge (m)'],
+            'data': data
+        }
+    
+    elif query_type == 'cable_carriers_detailed':
+        details = ifc_queries.get_cable_carrier_segments_detailed(ifc_file)
+        
+        data = []
+        
+        # Add parapet channels with individual details
+        if details['parapet_channels']['count'] > 0:
+            data.append(['=== Brüstungskanäle (Parapet Channels) ===', '', '', '', ''])
+            data.append(['ID', 'Name', 'Typ-Name', 'Höhe (m)', 'Länge (m)'])
+            
+            for item in details['parapet_channels']['items']:
+                data.append([
+                    str(item['id']),
+                    item['name'] if item['name'] else 'N/A',
+                    item['type_name'] if item['type_name'] else 'N/A',
+                    f"{item['height']:.3f}" if item['height'] is not None else 'N/A',
+                    f"{item['length']:.3f}" if item['length'] is not None else 'N/A'
+                ])
+            
+            # Subtotal for parapet channels
+            data.append([
+                'Zwischensumme',
+                f"{details['parapet_channels']['count']} Elemente",
+                '',
+                '',
+                f"{round(details['parapet_channels']['total_length'], 2)} m"
+            ])
+            data.append(['', '', '', '', ''])  # Empty row for spacing
+        
+        # Add other cable carriers with individual details
+        if details['other_cable_carriers']['count'] > 0:
+            data.append(['=== Andere Kabelträger (Other Cable Carriers) ===', '', '', '', ''])
+            data.append(['ID', 'Name', 'Typ-Name', 'Höhe (m)', 'Länge (m)'])
+            
+            for item in details['other_cable_carriers']['items']:
+                data.append([
+                    str(item['id']),
+                    item['name'] if item['name'] else 'N/A',
+                    item['type_name'] if item['type_name'] else 'N/A',
+                    f"{item['height']:.3f}" if item['height'] is not None else 'N/A',
+                    f"{item['length']:.3f}" if item['length'] is not None else 'N/A'
+                ])
+            
+            # Subtotal for other carriers
+            data.append([
+                'Zwischensumme',
+                f"{details['other_cable_carriers']['count']} Elemente",
+                '',
+                '',
+                f"{round(details['other_cable_carriers']['total_length'], 2)} m"
+            ])
+            data.append(['', '', '', '', ''])  # Empty row for spacing
+        
+        # Add total row
+        if details['total_count'] > 0:
+            data.append([
+                'GESAMT',
+                f"{details['total_count']} Elemente",
+                '',
+                '',
+                f"{round(details['total_length'], 2)} m"
+            ])
+        
+        return {
+            'type': 'table',
+            'title': 'Kabelträgersegmente (IfcCableCarrierSegment) - Detailansicht',
+            'headers': ['ID / Kategorie', 'Name / Anzahl', 'Typ-Name', 'Höhe (m)', 'Länge (m)'],
+            'data': data
+        }
+    
     else:
         return {'error': f'Unbekannter Abfragetyp: {query_type}'}
 
@@ -811,6 +919,103 @@ def execute_query_type_multi(ifc_files, query_type, params):
         return {
             'type': 'table',
             'title': 'Nettofläche pro Geschoss und Datei (m²)',
+            'headers': headers,
+            'data': data
+        }
+    
+    elif query_type == 'doors_by_wall_type':
+        # Show door counts by wall type for each file
+        headers = ['Wandtyp'] + list(ifc_files.keys())
+        
+        # Collect all unique wall types
+        all_wall_types = set()
+        for filename, ifc_file in ifc_files.items():
+            counts = ifc_queries.count_doors_by_wall_type(ifc_file)
+            all_wall_types.update(counts.keys())
+        
+        # Build data
+        data = []
+        for wall_type in sorted(all_wall_types):
+            row = [wall_type]
+            for filename, ifc_file in ifc_files.items():
+                counts = ifc_queries.count_doors_by_wall_type(ifc_file)
+                row.append(counts.get(wall_type, 0))
+            data.append(row)
+        
+        return {
+            'type': 'table',
+            'title': 'Türen nach Wandtyp und Datei',
+            'headers': headers,
+            'data': data
+        }
+    
+    elif query_type == 'parapet_channels_summary':
+        # Show parapet channel summary for each file
+        headers = ['Elementtyp'] + list(ifc_files.keys())
+        
+        # Collect all unique element types
+        all_elem_types = set()
+        for filename, ifc_file in ifc_files.items():
+            summary = ifc_queries.get_parapet_channels_summary(ifc_file)
+            all_elem_types.update(summary['by_type'].keys())
+        
+        # Build data
+        data = []
+        for elem_type in sorted(all_elem_types):
+            german_name = get_german_element_name(elem_type)
+            row = [german_name]
+            for filename, ifc_file in ifc_files.items():
+                summary = ifc_queries.get_parapet_channels_summary(ifc_file)
+                info = summary['by_type'].get(elem_type, {'count': 0, 'total_length': 0.0})
+                count = info['count']
+                length = round(info['total_length'], 2) if info['total_length'] > 0 else 0
+                row.append(f"{count} ({length}m)")
+            data.append(row)
+        
+        return {
+            'type': 'table',
+            'title': 'Brüstungskanäle nach Elementtyp und Datei (Anzahl (Länge))',
+            'headers': headers,
+            'data': data
+        }
+    
+    elif query_type == 'cable_carriers_detailed':
+        # For single file, show detailed individual elements
+        if len(ifc_files) == 1:
+            filename = list(ifc_files.keys())[0]
+            ifc_file = ifc_files[filename]
+            result = execute_query_type(ifc_file, query_type, params)
+            result['title'] = f"{result.get('title', '')} - {filename}"
+            return result
+        
+        # For multiple files, show summary comparison
+        headers = ['Kategorie'] + list(ifc_files.keys())
+        
+        # Categories to show
+        categories = ['Brüstungskanäle (Parapet)', 'Andere Kabelträger', 'GESAMT']
+        
+        data = []
+        for category in categories:
+            row = [category]
+            for filename, ifc_file in ifc_files.items():
+                details = ifc_queries.get_cable_carrier_segments_detailed(ifc_file)
+                
+                if category == 'Brüstungskanäle (Parapet)':
+                    count = details['parapet_channels']['count']
+                    length = round(details['parapet_channels']['total_length'], 2) if details['parapet_channels']['total_length'] > 0 else 0
+                elif category == 'Andere Kabelträger':
+                    count = details['other_cable_carriers']['count']
+                    length = round(details['other_cable_carriers']['total_length'], 2) if details['other_cable_carriers']['total_length'] > 0 else 0
+                else:  # GESAMT
+                    count = details['total_count']
+                    length = round(details['total_length'], 2) if details['total_length'] > 0 else 0
+                
+                row.append(f"{count} ({length}m)")
+            data.append(row)
+        
+        return {
+            'type': 'table',
+            'title': 'Kabelträgersegmente - Vergleich nach Datei (Anzahl (Länge))',
             'headers': headers,
             'data': data
         }
