@@ -7,7 +7,7 @@ This script tests the ifcopenshell API by searching for parapet channels
 (cable carrier segments at parapet height) in an IFC file.
 
 A parapet channel (German: "Brüstungskanal") is a cable carrier segment or
-cable channel that is typically installed at parapet height (around 0.9-1.2m
+cable channel that is typically installed at parapet height (around 0.8-1.3m
 from the floor).
 
 Usage:
@@ -19,6 +19,7 @@ If no file is specified, it will search for IFC files in the current directory.
 import os
 import sys
 import glob
+import traceback
 
 try:
     import ifcopenshell
@@ -443,7 +444,6 @@ def analyze_ifc_file(file_path):
         
     except Exception as e:
         print(f"\n✗ Error analyzing IFC file: {e}")
-        import traceback
         traceback.print_exc()
         return None
 

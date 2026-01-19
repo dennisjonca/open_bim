@@ -60,7 +60,7 @@ Ein spezialisiertes Test-Programm, das die Grenzen der ifcopenshell-API auslotet
 
 ### Was ist ein Brüstungskanal?
 
-Ein Brüstungskanal ist ein Kabelkanal oder Kabelträgersegment, das auf Brüstungshöhe (ca. 0,8-1,3m vom Boden) installiert wird. Diese werden häufig in Bürogebäuden verwendet, um Steckdosen und Datenkabel an den Wänden zu führen.
+Ein Brüstungskanal ist ein Kabelkanal oder Kabelträgersegment, das auf Brüstungshöhe (ca. 0.8-1.3m vom Boden) installiert wird. Diese werden häufig in Bürogebäuden verwendet, um Steckdosen und Datenkabel an den Wänden zu führen.
 
 ### Funktionen
 
