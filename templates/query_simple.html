@@ -18,17 +18,7 @@
 
     <div class="query-interface">
         <div class="query-sidebar">
-            <h3>Ansichtsmodus</h3>
-            <div class="view-mode-tabs">
-                <button class="view-mode-button active" data-view="storey">
-                    Nach Geschoss
-                </button>
-                <button class="view-mode-button" data-view="mep">
-                    Nach TGA
-                </button>
-            </div>
-
-            <h3 style="margin-top: 2rem;">Abfragetyp</h3>
+            <h3>Abfragetyp</h3>
             <div class="category-tabs">
                 <button class="tab-button active" data-category="quantity">
                     Zählung & Menge
@@ -48,60 +38,30 @@
                 <h3>Zählung & Menge</h3>
                 <p class="category-description">Elemente in Ihrem Gebäude zählen</p>
 
-                <!-- By Storey View -->
-                <div class="view-panel active" data-view="storey">
-                    <div class="query-card">
-                        <h4>Elemente nach Geschoss zählen</h4>
-                        <form class="query-form" data-query="count_by_storey">
-                            <div class="form-group">
-                                <label>Elementtyp:</label>
-                                <select name="element_type" id="quantity_storey_select" required>
-                                    <option value="">-- Elementtyp auswählen --</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Abfrage ausführen</button>
-                        </form>
-                    </div>
-
-                    <div class="query-card">
-                        <h4>Gesamtanzahl</h4>
-                        <form class="query-form" data-query="count_total">
-                            <div class="form-group">
-                                <label>Elementtyp:</label>
-                                <select name="element_type" id="quantity_total_select" required>
-                                    <option value="">-- Elementtyp auswählen --</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Abfrage ausführen</button>
-                        </form>
-                    </div>
+                <div class="query-card">
+                    <h4>Elemente nach Geschoss zählen</h4>
+                    <form class="query-form" data-query="count_by_storey">
+                        <div class="form-group">
+                            <label>Elementtyp:</label>
+                            <select name="element_type" id="quantity_storey_select" required>
+                                <option value="">-- Elementtyp auswählen --</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Abfrage ausführen</button>
+                    </form>
                 </div>
 
-                <!-- By MEP View -->
-                <div class="view-panel" data-view="mep">
-                    <div class="query-card">
-                        <h4>TGA-Elemente nach System</h4>
-                        <form class="query-form" data-query="elements_by_system">
-                            <div class="form-group">
-                                <label>Nach Systemname filtern (optional):</label>
-                                <input type="text" name="system_name" placeholder="Leer lassen für alle Systeme">
-                            </div>
-                            <button type="submit" class="btn btn-primary">Abfrage ausführen</button>
-                        </form>
-                    </div>
-
-                    <div class="query-card">
-                        <h4>Zählung nach TGA-Elementtyp</h4>
-                        <form class="query-form" data-query="count_total">
-                            <div class="form-group">
-                                <label>TGA-Elementtyp:</label>
-                                <select name="element_type" id="quantity_mep_select" required>
-                                    <option value="">-- TGA-Elementtyp auswählen --</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Abfrage ausführen</button>
-                        </form>
-                    </div>
+                <div class="query-card">
+                    <h4>Gesamtanzahl</h4>
+                    <form class="query-form" data-query="count_total">
+                        <div class="form-group">
+                            <label>Elementtyp:</label>
+                            <select name="element_type" id="quantity_total_select" required>
+                                <option value="">-- Elementtyp auswählen --</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Abfrage ausführen</button>
+                    </form>
                 </div>
             </div>
 
@@ -110,75 +70,43 @@
                 <h3>Längen & Volumen</h3>
                 <p class="category-description">Gesamtlängen und Flächen berechnen</p>
 
-                <!-- By Storey View -->
-                <div class="view-panel active" data-view="storey">
-                    <div class="query-card">
-                        <h4>Gesamtlänge nach Geschoss</h4>
-                        <form class="query-form" data-query="length_by_storey">
-                            <div class="form-group">
-                                <label>Linienelementtyp:</label>
-                                <select name="element_type" id="length_storey_select" required>
-                                    <option value="">-- Elementtyp auswählen --</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Abfrage ausführen</button>
-                        </form>
-                    </div>
-
-                    <div class="query-card">
-                        <h4>Gesamtlänge (Gebäudeweit)</h4>
-                        <form class="query-form" data-query="total_length">
-                            <div class="form-group">
-                                <label>Linienelementtyp:</label>
-                                <select name="element_type" id="length_total_select" required>
-                                    <option value="">-- Elementtyp auswählen --</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Abfrage ausführen</button>
-                        </form>
-                    </div>
-
-                    <div class="query-card">
-                        <h4>Gesamtfläche</h4>
-                        <form class="query-form" data-query="total_area">
-                            <div class="form-group">
-                                <label>Flächenelementtyp:</label>
-                                <select name="element_type" id="area_select" required>
-                                    <option value="">-- Elementtyp auswählen --</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Abfrage ausführen</button>
-                        </form>
-                    </div>
+                <div class="query-card">
+                    <h4>Gesamtlänge nach Geschoss</h4>
+                    <form class="query-form" data-query="length_by_storey">
+                        <div class="form-group">
+                            <label>Linienelementtyp:</label>
+                            <select name="element_type" id="length_storey_select" required>
+                                <option value="">-- Elementtyp auswählen --</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Abfrage ausführen</button>
+                    </form>
                 </div>
 
-                <!-- By MEP View -->
-                <div class="view-panel" data-view="mep">
-                    <div class="query-card">
-                        <h4>TGA-Gesamtlängen nach System</h4>
-                        <form class="query-form" data-query="length_by_system">
-                            <div class="form-group">
-                                <label>TGA-Linienelementtyp:</label>
-                                <select name="element_type" id="length_mep_select" required>
-                                    <option value="">-- TGA-Elementtyp auswählen --</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Abfrage ausführen</button>
-                        </form>
-                    </div>
+                <div class="query-card">
+                    <h4>Gesamtlänge (Gebäudeweit)</h4>
+                    <form class="query-form" data-query="total_length">
+                        <div class="form-group">
+                            <label>Linienelementtyp:</label>
+                            <select name="element_type" id="length_total_select" required>
+                                <option value="">-- Elementtyp auswählen --</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Abfrage ausführen</button>
+                    </form>
+                </div>
 
-                    <div class="query-card">
-                        <h4>Gesamtlänge nach TGA-Typ</h4>
-                        <form class="query-form" data-query="total_length">
-                            <div class="form-group">
-                                <label>TGA-Linienelementtyp:</label>
-                                <select name="element_type" id="length_mep_total_select" required>
-                                    <option value="">-- TGA-Elementtyp auswählen --</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Abfrage ausführen</button>
-                        </form>
-                    </div>
+                <div class="query-card">
+                    <h4>Gesamtfläche</h4>
+                    <form class="query-form" data-query="total_area">
+                        <div class="form-group">
+                            <label>Flächenelementtyp:</label>
+                            <select name="element_type" id="area_select" required>
+                                <option value="">-- Elementtyp auswählen --</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Abfrage ausführen</button>
+                    </form>
                 </div>
             </div>
 
@@ -187,55 +115,29 @@
                 <h3>Räume & Flächen</h3>
                 <p class="category-description">Räume in Ihrem Gebäude auflisten und analysieren</p>
 
-                <!-- By Storey View -->
-                <div class="view-panel active" data-view="storey">
-                    <div class="query-card">
-                        <h4>Alle Räume/Flächen zählen</h4>
-                        <form class="query-form" data-query="count_rooms">
-                            <button type="submit" class="btn btn-primary">Abfrage ausführen</button>
-                        </form>
-                    </div>
-
-                    <div class="query-card">
-                        <h4>Nettofläche pro Geschoss</h4>
-                        <form class="query-form" data-query="net_area_per_storey">
-                            <button type="submit" class="btn btn-primary">Abfrage ausführen</button>
-                        </form>
-                    </div>
-
-                    <div class="query-card">
-                        <h4>Fläche nach Raumtyp</h4>
-                        <form class="query-form" data-query="area_by_space_type">
-                            <div class="form-group">
-                                <label>Raumtyp (Name enthält):</label>
-                                <input type="text" name="space_type" placeholder="z. B. Büro, Badezimmer" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Abfrage ausführen</button>
-                        </form>
-                    </div>
+                <div class="query-card">
+                    <h4>Alle Räume/Flächen zählen</h4>
+                    <form class="query-form" data-query="count_rooms">
+                        <button type="submit" class="btn btn-primary">Abfrage ausführen</button>
+                    </form>
                 </div>
 
-                <!-- By MEP View -->
-                <div class="view-panel" data-view="mep">
-                    <div class="query-card">
-                        <h4>Räume mit TGA-Elementen</h4>
-                        <form class="query-form" data-query="elements_per_space">
-                            <div class="form-group">
-                                <label>TGA-Elementtyp:</label>
-                                <select name="element_type" id="space_mep_select" required>
-                                    <option value="">-- TGA-Elementtyp auswählen --</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Abfrage ausführen</button>
-                        </form>
-                    </div>
+                <div class="query-card">
+                    <h4>Nettofläche pro Geschoss</h4>
+                    <form class="query-form" data-query="net_area_per_storey">
+                        <button type="submit" class="btn btn-primary">Abfrage ausführen</button>
+                    </form>
+                </div>
 
-                    <div class="query-card">
-                        <h4>Räume/Flächen zählen</h4>
-                        <form class="query-form" data-query="count_rooms">
-                            <button type="submit" class="btn btn-primary">Abfrage ausführen</button>
-                        </form>
-                    </div>
+                <div class="query-card">
+                    <h4>Fläche nach Raumtyp</h4>
+                    <form class="query-form" data-query="area_by_space_type">
+                        <div class="form-group">
+                            <label>Raumtyp (Name enthält):</label>
+                            <input type="text" name="space_type" placeholder="z. B. Büro, Badezimmer" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Abfrage ausführen</button>
+                    </form>
                 </div>
             </div>
         </div>
