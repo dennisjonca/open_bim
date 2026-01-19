@@ -275,12 +275,19 @@ def analyze_cable_segments(ifc_file):
             if height is not None:
                 print(f"  Height: {height:.3f} m")
             
+            # Check if height is in parapet range
+            is_parapet_by_height = False
+            if height is not None and PARAPET_HEIGHT_MIN <= height <= PARAPET_HEIGHT_MAX:
+                is_parapet_by_height = True
+            
             parapet_candidates.append({
                 'element': segment,
                 'id': segment.id(),
                 'name': element_name,
                 'type_name': type_name,
-                'height': height
+                'height': height,
+                'detected_by_name': True,  # Already detected by name if we're here
+                'detected_by_height': is_parapet_by_height
             })
     
     if not parapet_candidates:
@@ -344,7 +351,7 @@ def print_summary(all_candidates):
         print("  4. Height information is not included in the IFC file")
         return 0
     
-    # Deduplicate candidates by ID
+    # Deduplicate candidates by ID, maintaining insertion order
     unique_candidates = {}
     duplicate_count = 0
     for candidate in all_candidates:
@@ -363,7 +370,8 @@ def print_summary(all_candidates):
     print(f"Unique parapet channels: {unique_count}")
     print("\nDetailed list:\n")
     
-    for idx, (element_id, candidate) in enumerate(sorted(unique_candidates.items()), 1):
+    # Use .values() to maintain insertion order (Python 3.7+ dicts maintain order)
+    for idx, candidate in enumerate(unique_candidates.values(), 1):
         print(f"{idx}. ID: {candidate['id']}")
         print(f"   Name: {candidate['name']}")
         print(f"   IFC Type: {candidate['element'].is_a()}")
@@ -436,7 +444,9 @@ def analyze_ifc_file(file_path):
                 'id': elem.id(),
                 'name': get_element_name(elem),
                 'type_name': get_element_type_name(elem),
-                'height': None
+                'height': None,
+                'detected_by_name': True,  # Detected by name if in this list
+                'detected_by_height': False
             })
         
         # Print summary (returns unique count)
