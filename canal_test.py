@@ -342,16 +342,33 @@ def print_summary(all_candidates):
         print("  2. They are not modeled as IfcCableCarrierSegment")
         print("  3. They don't have 'Brüstungskanal' or 'parapet' in their names")
         print("  4. Height information is not included in the IFC file")
-        return
+        return 0
     
-    print(f"\nTotal parapet channel candidates found: {len(all_candidates)}")
+    # Deduplicate candidates by ID
+    unique_candidates = {}
+    duplicate_count = 0
+    for candidate in all_candidates:
+        element_id = candidate['id']
+        if element_id not in unique_candidates:
+            unique_candidates[element_id] = candidate
+        else:
+            duplicate_count += 1
+    
+    total_found = len(all_candidates)
+    unique_count = len(unique_candidates)
+    
+    print(f"\nTotal parapet channel candidates found: {total_found}")
+    if duplicate_count > 0:
+        print(f"  (Note: {duplicate_count} duplicate(s) removed - same element detected multiple times)")
+    print(f"Unique parapet channels: {unique_count}")
     print("\nDetailed list:\n")
     
-    for idx, candidate in enumerate(all_candidates, 1):
+    for idx, (element_id, candidate) in enumerate(sorted(unique_candidates.items()), 1):
         print(f"{idx}. ID: {candidate['id']}")
         print(f"   Name: {candidate['name']}")
+        print(f"   IFC Type: {candidate['element'].is_a()}")
         if candidate.get('type_name'):
-            print(f"   Type: {candidate['type_name']}")
+            print(f"   Type Name: {candidate['type_name']}")
         if candidate.get('height') is not None:
             print(f"   Height: {candidate['height']:.3f} m")
         
@@ -363,6 +380,8 @@ def print_summary(all_candidates):
         if detection_methods:
             print(f"   Detected by: {', '.join(detection_methods)}")
         print()
+    
+    return unique_count
 
 
 def analyze_ifc_file(file_path):
@@ -420,8 +439,8 @@ def analyze_ifc_file(file_path):
                 'height': None
             })
         
-        # Print summary
-        print_summary(all_candidates)
+        # Print summary (returns unique count)
+        unique_count = print_summary(all_candidates)
         
         # Additional API testing information
         print("\n" + "="*70)
@@ -439,8 +458,13 @@ def analyze_ifc_file(file_path):
         print("  • Element naming varies by BIM software")
         print("  • Spatial relationships don't always include height offset")
         print("  • Some elements may use generic types (IfcBuildingElementProxy)")
+        print("\nNote about IFC Element IDs:")
+        print("  • Each IFC element has a unique ID within the file")
+        print("  • The same element cannot have multiple IDs")
+        print("  • If duplicates are found, they were detected by multiple strategies")
+        print("  • The summary automatically removes duplicates based on ID")
         
-        return len(all_candidates)
+        return unique_count
         
     except Exception as e:
         print(f"\n✗ Error analyzing IFC file: {e}")
