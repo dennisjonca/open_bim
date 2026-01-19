@@ -15,7 +15,7 @@
                 <li><a href="{{ url_for('index') }}">Start</a></li>
                 {% if session.get('ifc_filenames') or session.get('ifc_filename') %}
                 <li><a href="{{ url_for('query_page') }}">Abfrage</a></li>
-                <li><a href="{{ url_for('clear_session') }}" class="btn-clear">Datei(en) Löschen</a></li>
+                <li><a href="{{ url_for('clear_session') }}" class="btn-clear">Sitzung beenden</a></li>
                 {% endif %}
             </ul>
         </div>
