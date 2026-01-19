@@ -193,10 +193,21 @@ body {
     background: #eff6ff;
 }
 
+.file-label.files-selected {
+    border-color: var(--success-color);
+    background: #d1fae5;
+    border-style: solid;
+}
+
 .file-icon {
     font-size: 3rem;
     display: block;
     margin-bottom: 0.5rem;
+}
+
+.file-selected-hint {
+    color: var(--success-color);
+    font-weight: 600;
 }
 
 /* Current File */
