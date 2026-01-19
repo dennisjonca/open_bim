@@ -6,7 +6,14 @@
 <div class="query-page">
     <div class="page-header">
         <h2>IFC-Daten abfragen</h2>
-        <p class="filename">Datei: <strong>{{ filename }}</strong></p>
+        <div class="filename-list">
+            <p><strong>Geladene Dateien:</strong></p>
+            <ul>
+            {% for filename in filenames %}
+                <li>{{ filename }}</li>
+            {% endfor %}
+            </ul>
+        </div>
     </div>
 
     <div class="query-interface">

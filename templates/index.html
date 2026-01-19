@@ -5,26 +5,31 @@
 {% block content %}
 <div class="upload-section">
     <h2>Willkommen beim IFC Abfrage-Tool</h2>
-    <p class="subtitle">Laden Sie Ihre IFC-Datei hoch, um BIM-Daten abzufragen</p>
+    <p class="subtitle">Laden Sie Ihre IFC-Datei(en) hoch, um BIM-Daten abzufragen</p>
 
-    {% if has_file %}
+    {% if has_files %}
     <div class="current-file">
-        <h3>Aktuelle Datei</h3>
-        <p><strong>{{ filename }}</strong></p>
+        <h3>Aktuelle Dateien</h3>
+        <ul>
+        {% for filename in filenames %}
+            <li><strong>{{ filename }}</strong></li>
+        {% endfor %}
+        </ul>
         <a href="{{ url_for('query_page') }}" class="btn btn-primary">Zur Abfrage-Oberfläche</a>
-        <a href="{{ url_for('clear_session') }}" class="btn btn-secondary">Neue Datei hochladen</a>
+        <a href="{{ url_for('clear_session') }}" class="btn btn-secondary">Neue Dateien hochladen</a>
     </div>
     {% else %}
     <div class="upload-box">
         <form method="POST" action="{{ url_for('upload_file') }}" enctype="multipart/form-data">
             <div class="file-input-wrapper">
-                <input type="file" name="file" id="file" accept=".ifc,.IFC" required>
-                <label for="file" class="file-label">
+                <input type="file" name="files" id="files" accept=".ifc,.IFC" multiple required>
+                <label for="files" class="file-label">
                     <span class="file-icon">📁</span>
-                    <span>IFC-Datei auswählen</span>
+                    <span>IFC-Datei(en) auswählen</span>
                 </label>
             </div>
-            <button type="submit" class="btn btn-primary">Datei hochladen</button>
+            <p class="hint">Sie können mehrere IFC-Dateien gleichzeitig auswählen</p>
+            <button type="submit" class="btn btn-primary">Datei(en) hochladen</button>
         </form>
     </div>
 
@@ -54,6 +59,10 @@
             <div class="feature">
                 <h4>Konformitätsprüfung</h4>
                 <p>Prüfen, ob Elemente an erforderlichen Stellen vorhanden sind</p>
+            </div>
+            <div class="feature">
+                <h4>Mehrere Dateien vergleichen</h4>
+                <p>Laden Sie mehrere IFC-Dateien hoch und vergleichen Sie die Daten nebeneinander</p>
             </div>
         </div>
     </div>
