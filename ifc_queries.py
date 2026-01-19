@@ -927,3 +927,92 @@ def get_parapet_channels_summary(ifc_file):
             }
     
     return summary
+
+
+def get_cable_carrier_segments_detailed(ifc_file):
+    """
+    Get detailed information about all CableCarrierSegments, categorized by whether
+    they are parapet-related or not.
+    
+    Returns:
+        Dictionary with detailed categorization:
+        {
+            'parapet_channels': {
+                'count': int,
+                'total_length': float,
+                'items': [list of parapet channel info dicts]
+            },
+            'other_cable_carriers': {
+                'count': int,
+                'total_length': float,
+                'items': [list of non-parapet cable carrier info dicts]
+            },
+            'total_count': int,
+            'total_length': float
+        }
+    """
+    result = {
+        'parapet_channels': {
+            'count': 0,
+            'total_length': 0.0,
+            'items': []
+        },
+        'other_cable_carriers': {
+            'count': 0,
+            'total_length': 0.0,
+            'items': []
+        },
+        'total_count': 0,
+        'total_length': 0.0
+    }
+    
+    # Get all CableCarrierSegments
+    cable_carriers = ifc_file.by_type('IfcCableCarrierSegment')
+    
+    for element in cable_carriers:
+        # Get element info
+        element_name = element.Name if hasattr(element, 'Name') and element.Name else None
+        if not element_name:
+            element_name = element.LongName if hasattr(element, 'LongName') and element.LongName else f"Element #{element.id()}"
+        
+        type_name = _get_element_type_name(element)
+        height = _get_element_height_from_properties(element)
+        length = get_element_length(element)
+        
+        # Check if it's a parapet channel
+        is_parapet_by_name = False
+        if _check_name_for_parapet_keywords(element_name):
+            is_parapet_by_name = True
+        if type_name and _check_name_for_parapet_keywords(type_name):
+            is_parapet_by_name = True
+        
+        is_parapet_by_height = False
+        if height is not None and PARAPET_HEIGHT_MIN <= height <= PARAPET_HEIGHT_MAX:
+            is_parapet_by_height = True
+        
+        info = {
+            'id': element.id(),
+            'name': element_name,
+            'type_name': type_name,
+            'height': height,
+            'length': length
+        }
+        
+        # Categorize
+        if is_parapet_by_name or is_parapet_by_height:
+            result['parapet_channels']['items'].append(info)
+            result['parapet_channels']['count'] += 1
+            if length is not None:
+                result['parapet_channels']['total_length'] += length
+        else:
+            result['other_cable_carriers']['items'].append(info)
+            result['other_cable_carriers']['count'] += 1
+            if length is not None:
+                result['other_cable_carriers']['total_length'] += length
+        
+        # Update totals
+        result['total_count'] += 1
+        if length is not None:
+            result['total_length'] += length
+    
+    return result

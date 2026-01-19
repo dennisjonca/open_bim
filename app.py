@@ -701,6 +701,42 @@ def execute_query_type(ifc_file, query_type, params):
             'data': data
         }
     
+    elif query_type == 'cable_carriers_detailed':
+        details = ifc_queries.get_cable_carrier_segments_detailed(ifc_file)
+        
+        data = []
+        
+        # Add parapet channels section
+        if details['parapet_channels']['count'] > 0:
+            data.append([
+                'Brüstungskanäle (Parapet)',
+                details['parapet_channels']['count'],
+                round(details['parapet_channels']['total_length'], 2) if details['parapet_channels']['total_length'] > 0 else 0
+            ])
+        
+        # Add other cable carriers section
+        if details['other_cable_carriers']['count'] > 0:
+            data.append([
+                'Andere Kabelträger',
+                details['other_cable_carriers']['count'],
+                round(details['other_cable_carriers']['total_length'], 2) if details['other_cable_carriers']['total_length'] > 0 else 0
+            ])
+        
+        # Add total row
+        if details['total_count'] > 0:
+            data.append([
+                'GESAMT',
+                details['total_count'],
+                round(details['total_length'], 2) if details['total_length'] > 0 else 0
+            ])
+        
+        return {
+            'type': 'table',
+            'title': 'Kabelträgersegmente (IfcCableCarrierSegment) - Übersicht',
+            'headers': ['Kategorie', 'Anzahl', 'Gesamtlänge (m)'],
+            'data': data
+        }
+    
     else:
         return {'error': f'Unbekannter Abfragetyp: {query_type}'}
 
@@ -905,6 +941,39 @@ def execute_query_type_multi(ifc_files, query_type, params):
         return {
             'type': 'table',
             'title': 'Brüstungskanäle nach Elementtyp und Datei (Anzahl (Länge))',
+            'headers': headers,
+            'data': data
+        }
+    
+    elif query_type == 'cable_carriers_detailed':
+        # Show cable carrier details for each file
+        headers = ['Kategorie'] + list(ifc_files.keys())
+        
+        # Categories to show
+        categories = ['Brüstungskanäle (Parapet)', 'Andere Kabelträger', 'GESAMT']
+        
+        data = []
+        for category in categories:
+            row = [category]
+            for filename, ifc_file in ifc_files.items():
+                details = ifc_queries.get_cable_carrier_segments_detailed(ifc_file)
+                
+                if category == 'Brüstungskanäle (Parapet)':
+                    count = details['parapet_channels']['count']
+                    length = round(details['parapet_channels']['total_length'], 2) if details['parapet_channels']['total_length'] > 0 else 0
+                elif category == 'Andere Kabelträger':
+                    count = details['other_cable_carriers']['count']
+                    length = round(details['other_cable_carriers']['total_length'], 2) if details['other_cable_carriers']['total_length'] > 0 else 0
+                else:  # GESAMT
+                    count = details['total_count']
+                    length = round(details['total_length'], 2) if details['total_length'] > 0 else 0
+                
+                row.append(f"{count} ({length}m)")
+            data.append(row)
+        
+        return {
+            'type': 'table',
+            'title': 'Kabelträgersegmente - Übersicht nach Datei (Anzahl (Länge))',
             'headers': headers,
             'data': data
         }
