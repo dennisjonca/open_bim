@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Vollständige Objektliste - IFC Abfrage-Tool{% endblock %}
+
+{% block content %}
+<div class="complete-list-page">
+    <div class="page-header">
+        <h2>📋 Vollständige IFC-Objektliste</h2>
+        <div class="filename-list">
+            <p><strong>Geladene Dateien:</strong></p>
+            <ul>
+            {% for filename in filenames %}
+                <li>{{ filename }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+        <div class="back-button-container">
+            <a href="{{ url_for('query_page') }}" class="btn btn-secondary">← Zurück zur Abfrage</a>
+        </div>
+    </div>
+
+    <div class="complete-list-content">
+        <div class="list-description">
+            <p>Diese Liste zeigt alle IFC-Objekte aus den geladenen Dateien, sortiert nach Geschoss (von unten nach oben). Jedes Objekt wird mit seinem deutschen Namen und dem IFC-technischen Namen angezeigt.</p>
+        </div>
+
+        {% for storey_name in sorted_storeys %}
+        <div class="storey-section">
+            <h3 class="storey-heading">{{ storey_name }}</h3>
+            
+            {% for filename in filenames %}
+            {% set file_data = all_data[filename] %}
+            {% set storey_objects = file_data['storey_objects'].get(storey_name, {}) %}
+            
+            {% if storey_objects %}
+            <div class="file-section">
+                <h4 class="file-heading">{{ filename }}</h4>
+                
+                <table class="object-table">
+                    <thead>
+                        <tr>
+                            <th>Objekttyp (Deutsch / IFC)</th>
+                            <th>Anzahl</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for object_type, count in storey_objects.items()|sort %}
+                        <tr>
+                            <td>
+                                <span class="german-name">{{ get_german_element_name(object_type) }}</span>
+                                <span class="ifc-name"> / {{ object_type[3:] if object_type.startswith('Ifc') else object_type }}</span>
+                            </td>
+                            <td class="count-cell">{{ count }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="total-row">
+                            <td><strong>Gesamt für {{ storey_name }}</strong></td>
+                            <td class="count-cell"><strong>{{ storey_objects.values()|sum }}</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

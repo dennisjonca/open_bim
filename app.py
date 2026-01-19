@@ -289,6 +289,63 @@ def query_page():
                          element_translations=IFC_ELEMENT_TRANSLATIONS)
 
 
+@app.route('/complete-object-list')
+def complete_object_list():
+    """Display a complete list of all IFC objects sorted by floor."""
+    # Handle backward compatibility
+    if 'ifc_filename' in session and 'ifc_filenames' not in session:
+        session['ifc_filenames'] = [session['ifc_filename']]
+        session.pop('ifc_filename', None)
+        session.modified = True
+    
+    if 'ifc_filenames' not in session or not session['ifc_filenames']:
+        flash('Bitte laden Sie zuerst eine IFC-Datei hoch', 'warning')
+        return redirect(url_for('index'))
+    
+    ifc_files = get_ifc_files()
+    if not ifc_files:
+        flash('Fehler beim Laden der IFC-Dateien', 'error')
+        return redirect(url_for('index'))
+    
+    # Collect data from all files
+    all_data = {}
+    
+    for filename, ifc_file in ifc_files.items():
+        # Get all objects grouped by storey
+        storey_objects = ifc_queries.get_all_objects_by_storey(ifc_file)
+        
+        # Get storey elevations for sorting
+        storeys = ifc_queries.get_all_storeys(ifc_file)
+        storey_order = {name: elev for name, elev in storeys}
+        
+        all_data[filename] = {
+            'storey_objects': storey_objects,
+            'storey_order': storey_order
+        }
+    
+    # Collect all unique storeys across all files
+    all_storeys = set()
+    combined_storey_order = {}
+    for filename, data in all_data.items():
+        for storey_name, elevation in data['storey_order'].items():
+            all_storeys.add(storey_name)
+            if storey_name not in combined_storey_order:
+                combined_storey_order[storey_name] = elevation
+    
+    # Sort storeys by elevation
+    sorted_storeys = sorted(all_storeys, key=lambda x: (
+        combined_storey_order.get(x) is None,
+        combined_storey_order.get(x) if combined_storey_order.get(x) is not None else float('inf')
+    ))
+    
+    return render_template('complete_object_list.html',
+                         filenames=session['ifc_filenames'],
+                         all_data=all_data,
+                         sorted_storeys=sorted_storeys,
+                         element_translations=IFC_ELEMENT_TRANSLATIONS,
+                         get_german_element_name=get_german_element_name)
+
+
 @app.route('/api/query', methods=['POST'])
 def execute_query():
     """Eine Abfrage ausführen und Ergebnisse als JSON zurückgeben."""
