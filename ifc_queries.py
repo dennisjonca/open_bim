@@ -585,3 +585,27 @@ def sort_storey_data(ifc_file, storey_dict):
     
     # Return as [storey_name, value] pairs
     return [[item[0], item[1]] for item in sorted_items]
+
+
+def get_all_objects_by_storey(ifc_file):
+    """
+    Get a comprehensive list of all IFC objects grouped by storey.
+    
+    Args:
+        ifc_file: Opened IFC file object
+        
+    Returns:
+        Dictionary mapping storey names to object type counts
+        Format: {storey_name: {object_type: count}}
+    """
+    storey_objects = defaultdict(lambda: defaultdict(int))
+    
+    # Get all products
+    all_products = ifc_file.by_type("IfcProduct")
+    
+    for product in all_products:
+        storey = get_product_storey(product)
+        object_type = product.is_a()
+        storey_objects[storey][object_type] += 1
+    
+    return dict(storey_objects)

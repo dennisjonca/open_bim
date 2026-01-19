@@ -193,10 +193,21 @@ body {
     background: #eff6ff;
 }
 
+.file-label.files-selected {
+    border-color: var(--success-color);
+    background: #d1fae5;
+    border-style: solid;
+}
+
 .file-icon {
     font-size: 3rem;
     display: block;
     margin-bottom: 0.5rem;
+}
+
+.file-selected-hint {
+    color: var(--success-color);
+    font-weight: 600;
 }
 
 /* Current File */
@@ -265,6 +276,44 @@ body {
 
 .filename {
     color: var(--text-secondary);
+}
+
+.filename-list {
+    color: var(--text-secondary);
+}
+
+.filename-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0;
+}
+
+.filename-list li {
+    padding: 0.25rem 0;
+    font-weight: 500;
+}
+
+.complete-list-button-container {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.btn-complete-list {
+    font-size: 1rem;
+    padding: 0.875rem 1.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.complete-list-button-container .hint {
+    margin-top: 0.5rem;
+}
+
+.hint {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
 }
 
 /* Query Interface */
@@ -585,3 +634,104 @@ footer {
         grid-template-columns: 1fr;
     }
 }
+
+/* Complete Object List Page */
+.complete-list-page {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.back-button-container {
+    margin-top: 1rem;
+}
+
+.complete-list-content {
+    background: var(--card-background);
+    padding: 2rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.list-description {
+    background: #eff6ff;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #2563eb;
+    margin-bottom: 2rem;
+    color: #1e40af;
+}
+
+.storey-section {
+    margin-bottom: 2.5rem;
+}
+
+.storey-heading {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.file-section {
+    margin-bottom: 1.5rem;
+    padding-left: 1rem;
+}
+
+.file-heading {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.object-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+    background: var(--background);
+}
+
+.object-table th {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+}
+
+.object-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.object-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.german-name {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.ifc-name {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.count-cell {
+    text-align: right;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.total-row {
+    background: #eff6ff;
+    border-top: 2px solid var(--primary-color);
+}
+
+.total-row td {
+    padding: 1rem 0.75rem;
+    border-bottom: none;
+}
+

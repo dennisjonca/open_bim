@@ -5,34 +5,66 @@
 {% block content %}
 <div class="upload-section">
     <h2>Willkommen beim IFC Abfrage-Tool</h2>
-    <p class="subtitle">Laden Sie Ihre IFC-Datei hoch, um BIM-Daten abzufragen</p>
+    <p class="subtitle">Laden Sie Ihre IFC-Datei(en) hoch, um BIM-Daten abzufragen</p>
 
-    {% if has_file %}
+    {% if has_files %}
     <div class="current-file">
-        <h3>Aktuelle Datei</h3>
-        <p><strong>{{ filename }}</strong></p>
+        <h3>Aktuelle Dateien</h3>
+        <ul>
+        {% for filename in filenames %}
+            <li><strong>{{ filename }}</strong></li>
+        {% endfor %}
+        </ul>
         <a href="{{ url_for('query_page') }}" class="btn btn-primary">Zur Abfrage-Oberfläche</a>
-        <a href="{{ url_for('clear_session') }}" class="btn btn-secondary">Neue Datei hochladen</a>
+        <a href="{{ url_for('clear_session') }}" class="btn btn-secondary">Neue Dateien hochladen</a>
     </div>
     {% else %}
     <div class="upload-box">
         <form method="POST" action="{{ url_for('upload_file') }}" enctype="multipart/form-data">
             <div class="file-input-wrapper">
-                <input type="file" name="file" id="file" accept=".ifc,.IFC" required>
-                <label for="file" class="file-label">
+                <input type="file" name="files" id="files" accept=".ifc,.IFC" multiple required>
+                <label for="files" class="file-label" id="file-label">
                     <span class="file-icon">📁</span>
-                    <span>IFC-Datei auswählen</span>
+                    <span id="file-label-text">IFC-Datei(en) auswählen</span>
                 </label>
             </div>
-            <button type="submit" class="btn btn-primary">Datei hochladen</button>
+            <button type="submit" class="btn btn-primary">Datei(en) hochladen</button>
+            <p class="hint" id="file-count-hint">Sie können mehrere IFC-Dateien gleichzeitig auswählen</p>
         </form>
     </div>
+
+    <script>
+    // Handle file selection visual feedback
+    document.getElementById('files').addEventListener('change', function(e) {
+        const fileLabel = document.getElementById('file-label');
+        const fileLabelText = document.getElementById('file-label-text');
+        const fileCountHint = document.getElementById('file-count-hint');
+        const fileCount = e.target.files.length;
+        
+        if (fileCount > 0) {
+            // Change border to green and update text
+            fileLabel.classList.add('files-selected');
+            fileLabelText.textContent = fileCount === 1 
+                ? '1 Datei ausgewählt' 
+                : `${fileCount} Dateien ausgewählt`;
+            
+            // Update hint to show file count
+            fileCountHint.classList.add('file-selected-hint');
+        } else {
+            // Reset to default state
+            fileLabel.classList.remove('files-selected');
+            fileLabelText.textContent = 'IFC-Datei(en) auswählen';
+            fileCountHint.textContent = 'Sie können mehrere IFC-Dateien gleichzeitig auswählen';
+            fileCountHint.classList.remove('file-selected-hint');
+        }
+    });
+    </script>
 
     <div class="info-section">
         <h3>Was können Sie mit diesem Tool tun?</h3>
         <div class="features-grid">
             <div class="feature">
-                <h4>Mengen & Kostenermittlung</h4>
+                <h4>Mengenermittlung</h4>
                 <p>Elemente pro Geschoss oder im gesamten Gebäude zählen</p>
             </div>
             <div class="feature">
@@ -52,8 +84,8 @@
                 <p>Flächen berechnen und Raumnutzung analysieren</p>
             </div>
             <div class="feature">
-                <h4>Konformitätsprüfung</h4>
-                <p>Prüfen, ob Elemente an erforderlichen Stellen vorhanden sind</p>
+                <h4>Mehrere Dateien vergleichen</h4>
+                <p>Laden Sie mehrere IFC-Dateien hoch und vergleichen Sie die Daten nebeneinander</p>
             </div>
         </div>
     </div>

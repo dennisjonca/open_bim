@@ -159,86 +159,215 @@ def get_ifc_file():
         return None
 
 
+def get_ifc_files():
+    """Alle geladenen IFC-Dateien aus der Sitzung abrufen."""
+    # Handle backward compatibility - convert old single file format to new format
+    if 'ifc_filename' in session and 'ifc_filenames' not in session:
+        session['ifc_filenames'] = [session['ifc_filename']]
+        session.pop('ifc_filename', None)
+        session.modified = True
+    
+    if 'ifc_filenames' not in session or not session['ifc_filenames']:
+        return {}
+    
+    ifc_files = {}
+    for filename in session['ifc_filenames']:
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        if os.path.exists(filepath):
+            try:
+                ifc_files[filename] = ifcopenshell.open(filepath)
+            except Exception as e:
+                flash(f"Fehler beim Öffnen der IFC-Datei {filename}: {str(e)}", "error")
+    
+    return ifc_files
+
+
+def sort_storeys_by_elevation(storeys, storey_order):
+    """
+    Helper function to sort storey names by their elevation.
+    
+    Args:
+        storeys: List or set of storey names
+        storey_order: Dictionary mapping storey names to elevations
+    
+    Returns:
+        Sorted list of storey names
+    """
+    return sorted(storeys, key=lambda x: (storey_order.get(x) is None, storey_order.get(x) if storey_order.get(x) is not None else float('inf')))
+
+
 @app.route('/')
 def index():
     """Startseite - IFC-Datei hochladen."""
-    has_file = 'ifc_filename' in session
-    filename = session.get('ifc_filename', '')
-    return render_template('index.html', has_file=has_file, filename=filename)
+    # Handle backward compatibility
+    if 'ifc_filename' in session and 'ifc_filenames' not in session:
+        session['ifc_filenames'] = [session['ifc_filename']]
+        session.pop('ifc_filename', None)
+        session.modified = True
+    
+    has_files = 'ifc_filenames' in session and session['ifc_filenames']
+    filenames = session.get('ifc_filenames', [])
+    return render_template('index.html', has_files=has_files, filenames=filenames)
 
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    """Datei-Upload verarbeiten."""
-    if 'file' not in request.files:
+    """Datei-Upload verarbeiten - unterstützt mehrere Dateien."""
+    if 'files' not in request.files:
         flash('Kein Dateiteil', 'error')
         return redirect(url_for('index'))
     
-    file = request.files['file']
+    files = request.files.getlist('files')
     
-    if file.filename == '':
+    if not files or all(f.filename == '' for f in files):
         flash('Keine Datei ausgewählt', 'error')
         return redirect(url_for('index'))
     
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
-        
-        # Validieren, ob es eine gültige IFC-Datei ist
-        try:
-            ifc_file = ifcopenshell.open(filepath)
-            session['ifc_filename'] = filename
-            flash(f'Datei {filename} erfolgreich hochgeladen!', 'success')
-            return redirect(url_for('query_page'))
-        except Exception as e:
-            os.remove(filepath)  # Ungültige Datei entfernen
-            flash(f'Fehler: Keine gültige IFC-Datei - {str(e)}', 'error')
-            return redirect(url_for('index'))
+    # Initialize session list if not exists
+    if 'ifc_filenames' not in session:
+        session['ifc_filenames'] = []
+    
+    uploaded_count = 0
+    for file in files:
+        if file and file.filename and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+            
+            # Validieren, ob es eine gültige IFC-Datei ist
+            try:
+                _ = ifcopenshell.open(filepath)  # Validate only
+                if filename not in session['ifc_filenames']:
+                    session['ifc_filenames'].append(filename)
+                uploaded_count += 1
+            except Exception as e:
+                os.remove(filepath)  # Ungültige Datei entfernen
+                flash(f'Fehler bei {filename}: Keine gültige IFC-Datei - {str(e)}', 'error')
+    
+    session.modified = True
+    
+    if uploaded_count > 0:
+        flash(f'{uploaded_count} Datei(en) erfolgreich hochgeladen!', 'success')
+        return redirect(url_for('query_page'))
     else:
-        flash('Ungültiger Dateityp. Bitte laden Sie eine IFC-Datei hoch.', 'error')
+        flash('Keine gültigen IFC-Dateien hochgeladen', 'error')
         return redirect(url_for('index'))
 
 
 @app.route('/query')
 def query_page():
     """Haupt-Abfrage-Oberfläche."""
-    if 'ifc_filename' not in session:
+    # Handle backward compatibility
+    if 'ifc_filename' in session and 'ifc_filenames' not in session:
+        session['ifc_filenames'] = [session['ifc_filename']]
+        session.pop('ifc_filename', None)
+        session.modified = True
+    
+    if 'ifc_filenames' not in session or not session['ifc_filenames']:
         flash('Bitte laden Sie zuerst eine IFC-Datei hoch', 'warning')
         return redirect(url_for('index'))
     
-    ifc_file = get_ifc_file()
-    if not ifc_file:
-        flash('Fehler beim Laden der IFC-Datei', 'error')
+    ifc_files = get_ifc_files()
+    if not ifc_files:
+        flash('Fehler beim Laden der IFC-Dateien', 'error')
         return redirect(url_for('index'))
     
-    # Metadaten für die Oberfläche abrufen
-    storeys = ifc_queries.get_all_storeys(ifc_file)
-    element_types = ifc_queries.get_available_element_types(ifc_file)
+    # Metadaten für die Oberfläche abrufen - verwende die erste Datei für die Elementtypen
+    first_file = list(ifc_files.values())[0]
+    storeys = ifc_queries.get_all_storeys(first_file)
+    element_types = ifc_queries.get_available_element_types(first_file)
+    
+    # Get unique element types across all files
+    all_element_types = set(element_types)
+    for ifc_file in ifc_files.values():
+        all_element_types.update(ifc_queries.get_available_element_types(ifc_file))
     
     return render_template('query_simple.html', 
-                         filename=session['ifc_filename'],
+                         filenames=session['ifc_filenames'],
                          storeys=storeys,
-                         element_types=element_types,
+                         element_types=sorted(list(all_element_types)),
                          element_translations=IFC_ELEMENT_TRANSLATIONS)
+
+
+@app.route('/complete-object-list')
+def complete_object_list():
+    """Display a complete list of all IFC objects sorted by floor."""
+    # Handle backward compatibility
+    if 'ifc_filename' in session and 'ifc_filenames' not in session:
+        session['ifc_filenames'] = [session['ifc_filename']]
+        session.pop('ifc_filename', None)
+        session.modified = True
+    
+    if 'ifc_filenames' not in session or not session['ifc_filenames']:
+        flash('Bitte laden Sie zuerst eine IFC-Datei hoch', 'warning')
+        return redirect(url_for('index'))
+    
+    ifc_files = get_ifc_files()
+    if not ifc_files:
+        flash('Fehler beim Laden der IFC-Dateien', 'error')
+        return redirect(url_for('index'))
+    
+    # Collect data from all files
+    all_data = {}
+    
+    for filename, ifc_file in ifc_files.items():
+        # Get all objects grouped by storey
+        storey_objects = ifc_queries.get_all_objects_by_storey(ifc_file)
+        
+        # Get storey elevations for sorting
+        storeys = ifc_queries.get_all_storeys(ifc_file)
+        storey_order = {name: elev for name, elev in storeys}
+        
+        all_data[filename] = {
+            'storey_objects': storey_objects,
+            'storey_order': storey_order
+        }
+    
+    # Collect all unique storeys across all files
+    all_storeys = set()
+    combined_storey_order = {}
+    for filename, data in all_data.items():
+        for storey_name, elevation in data['storey_order'].items():
+            all_storeys.add(storey_name)
+            if storey_name not in combined_storey_order:
+                combined_storey_order[storey_name] = elevation
+    
+    # Sort storeys by elevation
+    sorted_storeys = sorted(all_storeys, key=lambda x: (
+        combined_storey_order.get(x) is None,
+        combined_storey_order.get(x) if combined_storey_order.get(x) is not None else float('inf')
+    ))
+    
+    return render_template('complete_object_list.html',
+                         filenames=session['ifc_filenames'],
+                         all_data=all_data,
+                         sorted_storeys=sorted_storeys,
+                         element_translations=IFC_ELEMENT_TRANSLATIONS,
+                         get_german_element_name=get_german_element_name)
 
 
 @app.route('/api/query', methods=['POST'])
 def execute_query():
     """Eine Abfrage ausführen und Ergebnisse als JSON zurückgeben."""
-    if 'ifc_filename' not in session:
+    # Handle backward compatibility
+    if 'ifc_filename' in session and 'ifc_filenames' not in session:
+        session['ifc_filenames'] = [session['ifc_filename']]
+        session.pop('ifc_filename', None)
+        session.modified = True
+    
+    if 'ifc_filenames' not in session or not session['ifc_filenames']:
         return jsonify({'error': 'Keine IFC-Datei geladen'}), 400
     
-    ifc_file = get_ifc_file()
-    if not ifc_file:
-        return jsonify({'error': 'Fehler beim Laden der IFC-Datei'}), 500
+    ifc_files = get_ifc_files()
+    if not ifc_files:
+        return jsonify({'error': 'Fehler beim Laden der IFC-Dateien'}), 500
     
     data = request.get_json()
     query_type = data.get('query_type')
     params = data.get('params', {})
     
     try:
-        result = execute_query_type(ifc_file, query_type, params)
+        result = execute_query_type_multi(ifc_files, query_type, params)
         return jsonify(result)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -538,9 +667,178 @@ def execute_query_type(ifc_file, query_type, params):
         return {'error': f'Unbekannter Abfragetyp: {query_type}'}
 
 
+def execute_query_type_multi(ifc_files, query_type, params):
+    """Spezifische Abfrage für mehrere IFC-Dateien ausführen."""
+    
+    # Kategorie 1: Mengen & Kostenermittlung
+    if query_type == 'count_by_storey':
+        element_type = params.get('element_type', 'IfcOutlet')
+        german_name = get_german_element_name(element_type)
+        
+        # Collect all unique storeys across all files
+        all_storeys = set()
+        storey_order = {}  # Track storey elevations for sorting
+        
+        for filename, ifc_file in ifc_files.items():
+            storeys = ifc_queries.get_all_storeys(ifc_file)
+            for storey_name, elevation in storeys:
+                all_storeys.add(storey_name)
+                if storey_name not in storey_order:
+                    storey_order[storey_name] = elevation
+        
+        # Sort storeys by elevation using helper function
+        sorted_storeys = sort_storeys_by_elevation(all_storeys, storey_order)
+        
+        # Build data with file name columns
+        headers = ['Geschoss'] + list(ifc_files.keys())
+        data = []
+        
+        for storey in sorted_storeys:
+            row = [storey]
+            for filename, ifc_file in ifc_files.items():
+                counts = ifc_queries.count_by_type_and_storey(ifc_file, element_type)
+                row.append(counts.get(storey, 0))
+            data.append(row)
+        
+        return {
+            'type': 'table',
+            'title': f'{german_name} Anzahl nach Geschoss und Datei',
+            'headers': headers,
+            'data': data
+        }
+    
+    elif query_type == 'count_total':
+        element_type = params.get('element_type', 'IfcDoor')
+        german_name = get_german_element_name(element_type)
+        
+        # Show counts per file
+        headers = ['Datei', 'Anzahl']
+        data = []
+        for filename, ifc_file in ifc_files.items():
+            count = ifc_queries.count_by_type_total(ifc_file, element_type)
+            data.append([filename, count])
+        
+        return {
+            'type': 'table',
+            'title': f'Gesamt {german_name} Anzahl pro Datei',
+            'headers': headers,
+            'data': data
+        }
+    
+    # For other query types that don't specifically need multi-file comparison,
+    # execute for each file and combine results
+    elif query_type in ['total_length', 'total_area', 'count_rooms', 'count_maintainable']:
+        # These return single values - show one per file
+        results = []
+        for filename, ifc_file in ifc_files.items():
+            result = execute_query_type(ifc_file, query_type, params)
+            results.append({'filename': filename, 'result': result})
+        
+        # Convert to table format
+        if results:
+            headers = ['Datei', results[0]['result']['title']]
+            data = []
+            for item in results:
+                value = item['result'].get('value', 'N/A')
+                unit = item['result'].get('unit', '')
+                data.append([item['filename'], f"{value} {unit}"])
+            
+            return {
+                'type': 'table',
+                'title': results[0]['result']['title'] + ' pro Datei',
+                'headers': headers,
+                'data': data
+            }
+    
+    elif query_type == 'length_by_storey':
+        element_type = params.get('element_type', 'IfcPipeSegment')
+        german_name = get_german_element_name(element_type)
+        
+        # Collect all unique storeys
+        all_storeys = set()
+        storey_order = {}
+        
+        for filename, ifc_file in ifc_files.items():
+            storeys = ifc_queries.get_all_storeys(ifc_file)
+            for storey_name, elevation in storeys:
+                all_storeys.add(storey_name)
+                if storey_name not in storey_order:
+                    storey_order[storey_name] = elevation
+        
+        sorted_storeys = sort_storeys_by_elevation(all_storeys, storey_order)
+        
+        headers = ['Geschoss'] + list(ifc_files.keys())
+        data = []
+        
+        for storey in sorted_storeys:
+            row = [storey]
+            for filename, ifc_file in ifc_files.items():
+                lengths = ifc_queries.get_length_by_storey(ifc_file, element_type)
+                row.append(round(lengths.get(storey, 0.0), 2))
+            data.append(row)
+        
+        return {
+            'type': 'table',
+            'title': f'{german_name} Länge nach Geschoss und Datei (m)',
+            'headers': headers,
+            'data': data
+        }
+    
+    elif query_type == 'net_area_per_storey':
+        # Collect all unique storeys
+        all_storeys = set()
+        storey_order = {}
+        
+        for filename, ifc_file in ifc_files.items():
+            storeys = ifc_queries.get_all_storeys(ifc_file)
+            for storey_name, elevation in storeys:
+                all_storeys.add(storey_name)
+                if storey_name not in storey_order:
+                    storey_order[storey_name] = elevation
+        
+        sorted_storeys = sort_storeys_by_elevation(all_storeys, storey_order)
+        
+        headers = ['Geschoss'] + list(ifc_files.keys())
+        data = []
+        
+        for storey in sorted_storeys:
+            row = [storey]
+            for filename, ifc_file in ifc_files.items():
+                areas = ifc_queries.get_net_area_per_storey(ifc_file)
+                row.append(round(areas.get(storey, 0.0), 2))
+            data.append(row)
+        
+        return {
+            'type': 'table',
+            'title': 'Nettofläche pro Geschoss und Datei (m²)',
+            'headers': headers,
+            'data': data
+        }
+    
+    else:
+        # For queries that don't have specific multi-file support yet,
+        # execute for the first file only
+        if not ifc_files:
+            return {'error': 'Keine IFC-Dateien verfügbar'}
+        
+        first_filename = list(ifc_files.keys())[0]
+        first_file = ifc_files[first_filename]
+        result = execute_query_type(first_file, query_type, params)
+        result['title'] = f"{result.get('title', '')} (aus {first_filename})"
+        return result
+
+
 @app.route('/clear')
 def clear_session():
-    """Die aktuelle Sitzung und hochgeladene Datei löschen."""
+    """Die aktuelle Sitzung und hochgeladene Dateien löschen."""
+    if 'ifc_filenames' in session:
+        for filename in session['ifc_filenames']:
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            if os.path.exists(filepath):
+                os.remove(filepath)
+        session.pop('ifc_filenames', None)
+    
+    # Also clear old single file session for backward compatibility
     if 'ifc_filename' in session:
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], session['ifc_filename'])
         if os.path.exists(filepath):
