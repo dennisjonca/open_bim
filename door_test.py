@@ -215,6 +215,11 @@ def get_wall_description_for_output(wall):
 def analyze_doors(ifc_file):
     """
     Analyze all doors in the IFC file and group them by wall type.
+    
+    Returns:
+        tuple: (doors_by_wall_type, doors_without_walls)
+            - doors_by_wall_type: dict mapping wall types to lists of door info dicts
+            - doors_without_walls: list of door info dicts for doors with no wall association
     """
     print("\n" + "="*70)
     print("SEARCHING FOR DOORS (IfcDoor)")
@@ -224,7 +229,7 @@ def analyze_doors(ifc_file):
     
     if not doors:
         print("\nNo IfcDoor objects found in this file.")
-        return {}
+        return {}, []
     
     print(f"\nFound {len(doors)} IfcDoor objects in total.")
     print("\nAnalyzing each door and its surrounding wall...\n")
