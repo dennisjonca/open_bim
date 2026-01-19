@@ -236,7 +236,7 @@ def upload_file():
             
             # Validieren, ob es eine gültige IFC-Datei ist
             try:
-                ifc_file = ifcopenshell.open(filepath)
+                _ = ifcopenshell.open(filepath)  # Validate only
                 if filename not in session['ifc_filenames']:
                     session['ifc_filenames'].append(filename)
                 uploaded_count += 1
@@ -682,7 +682,9 @@ def execute_query_type_multi(ifc_files, query_type, params):
             headers = ['Datei', results[0]['result']['title']]
             data = []
             for item in results:
-                data.append([item['filename'], f"{item['result']['value']} {item['result'].get('unit', '')}"])
+                value = item['result'].get('value', 'N/A')
+                unit = item['result'].get('unit', '')
+                data.append([item['filename'], f"{value} {unit}"])
             
             return {
                 'type': 'table',
@@ -759,6 +761,9 @@ def execute_query_type_multi(ifc_files, query_type, params):
     else:
         # For queries that don't have specific multi-file support yet,
         # execute for the first file only
+        if not ifc_files:
+            return {'error': 'Keine IFC-Dateien verfügbar'}
+        
         first_filename = list(ifc_files.keys())[0]
         first_file = ifc_files[first_filename]
         result = execute_query_type(first_file, query_type, params)
