@@ -68,8 +68,9 @@ body {
 
 .logo {
     font-size: 1.5rem;
+    font-family: 'Martel';
+    font-weight: 900; /* Heavy */
     color: var(--primary-color);
-    margin: 0;
 }
 
 .nav-links {
