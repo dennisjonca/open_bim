@@ -101,6 +101,45 @@ def get_element_height_from_properties(element):
     return None
 
 
+def get_element_length(element):
+    """
+    Get the length of a linear element.
+    Returns length in meters, or None if not found.
+    """
+    try:
+        # Try to get from element quantities (IfcElementQuantity) - most common for length data
+        if hasattr(element, 'IsDefinedBy') and element.IsDefinedBy:
+            for definition in element.IsDefinedBy:
+                if definition.is_a('IfcRelDefinesByProperties'):
+                    property_definition = definition.RelatingPropertyDefinition
+                    
+                    # Check IfcElementQuantity (standard way to store quantities)
+                    if property_definition.is_a('IfcElementQuantity'):
+                        for quantity in property_definition.Quantities:
+                            if quantity.is_a('IfcQuantityLength'):
+                                # Common length quantity names
+                                if quantity.Name in ['Length', 'NominalLength', 'TotalLength', 'GrossLength', 'NetLength']:
+                                    if hasattr(quantity, 'LengthValue') and quantity.LengthValue:
+                                        return float(quantity.LengthValue)
+                    
+                    # Also check IfcPropertySet (alternative location for length data)
+                    elif property_definition.is_a('IfcPropertySet'):
+                        for prop in property_definition.HasProperties:
+                            if prop.Name in ['Length', 'NominalLength', 'TotalLength', 'Länge']:
+                                if hasattr(prop, 'NominalValue') and prop.NominalValue:
+                                    try:
+                                        return float(prop.NominalValue.wrappedValue)
+                                    except (ValueError, TypeError, AttributeError):
+                                        pass
+        
+        # Note: Geometry-based calculation would require ifcopenshell.geom which is expensive
+        # For most IFC files, length should be available in quantities or properties
+    except Exception:
+        pass
+    
+    return None
+
+
 def check_name_for_parapet_keywords(name):
     """
     Check if a name contains keywords related to parapet channels.
@@ -214,7 +253,14 @@ def analyze_cable_carriers(ifc_file):
         else:
             print(f"  Installation Height: Not found in properties")
         
-        # Check 3: Get all properties for inspection
+        # Check 3: Get element length
+        length = get_element_length(carrier)
+        if length is not None:
+            print(f"  Length: {length:.3f} m")
+        else:
+            print(f"  Length: Not found in properties")
+        
+        # Check 4: Get all properties for inspection
         properties = get_element_properties(carrier)
         if properties:
             print(f"  Properties:")
@@ -232,6 +278,7 @@ def analyze_cable_carriers(ifc_file):
                 'name': element_name,
                 'type_name': type_name,
                 'height': height,
+                'length': length,
                 'detected_by_name': is_parapet_by_name,
                 'detected_by_height': is_parapet_by_height
             })
@@ -275,6 +322,11 @@ def analyze_cable_segments(ifc_file):
             if height is not None:
                 print(f"  Height: {height:.3f} m")
             
+            # Get element length
+            length = get_element_length(segment)
+            if length is not None:
+                print(f"  Length: {length:.3f} m")
+            
             # Check if height is in parapet range
             is_parapet_by_height = False
             if height is not None and PARAPET_HEIGHT_MIN <= height <= PARAPET_HEIGHT_MAX:
@@ -286,6 +338,7 @@ def analyze_cable_segments(ifc_file):
                 'name': element_name,
                 'type_name': type_name,
                 'height': height,
+                'length': length,
                 'detected_by_name': True,  # Already detected by name if we're here
                 'detected_by_height': is_parapet_by_height
             })
@@ -368,6 +421,18 @@ def print_summary(all_candidates):
     if duplicate_count > 0:
         print(f"  (Note: {duplicate_count} duplicate(s) removed - same element detected multiple times)")
     print(f"Unique parapet channels: {unique_count}")
+    
+    # Calculate total length if any lengths are available
+    total_length = 0.0
+    has_length_data = False
+    for candidate in unique_candidates.values():
+        if candidate.get('length') is not None:
+            total_length += candidate['length']
+            has_length_data = True
+    
+    if has_length_data:
+        print(f"Total length of parapet channels: {total_length:.3f} m")
+    
     print("\nDetailed list:\n")
     
     # Use .values() to maintain insertion order (Python 3.7+ dicts maintain order)
@@ -379,6 +444,10 @@ def print_summary(all_candidates):
             print(f"   Type Name: {candidate['type_name']}")
         if candidate.get('height') is not None:
             print(f"   Height: {candidate['height']:.3f} m")
+        if candidate.get('length') is not None:
+            print(f"   Length: {candidate['length']:.3f} m")
+        else:
+            print(f"   Length: Not available in properties")
         
         detection_methods = []
         if candidate.get('detected_by_name'):
@@ -439,12 +508,14 @@ def analyze_ifc_file(file_path):
         # Note: other_candidates are just elements, not dictionaries
         # Add them as simple entries
         for elem in other_candidates:
+            length = get_element_length(elem)
             all_candidates.append({
                 'element': elem,
                 'id': elem.id(),
                 'name': get_element_name(elem),
                 'type_name': get_element_type_name(elem),
                 'height': None,
+                'length': length,
                 'detected_by_name': True,  # Detected by name if in this list
                 'detected_by_height': False
             })
