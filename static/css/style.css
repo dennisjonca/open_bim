@@ -72,7 +72,7 @@ body {
 }
 
 .company-logo-2 {
-    height: 3.5rem; /* Size for second logo - adjust as needed */
+    height: 4rem; /* Size for second logo - adjust as needed */
 }
 
 .nav-links {
@@ -554,7 +554,7 @@ body {
 
 .result-unit {
     font-size: 1rem;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     margin-left: 0.5rem;
 }
 
