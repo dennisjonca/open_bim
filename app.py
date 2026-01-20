@@ -726,8 +726,8 @@ def execute_query_type(ifc_file, query_type, params):
 
         # Add parapet channels grouped by type name
         if details['parapet_channels']['count'] > 0:
-            data.append(['=== Brüstungskanäle ===', '', ''])
-            #data.append(['Typ-Name', 'Anzahl', 'Gesamtlänge (m)'])
+            data.append(['=== Brüstungskanäle (Parapet Channels) ===', '', ''])
+            data.append(['Typ-Name', 'Anzahl', 'Gesamtlänge (m)'])
 
             type_aggregates = aggregate_by_type_name(details['parapet_channels']['items'])
 
@@ -750,8 +750,8 @@ def execute_query_type(ifc_file, query_type, params):
 
         # Add other cable carriers grouped by type name
         if details['other_cable_carriers']['count'] > 0:
-            data.append(['=== Andere Kabelträger ===', '', ''])
-            #data.append(['Typ-Name', 'Anzahl', 'Gesamtlänge (m)'])
+            data.append(['=== Andere Kabelträger (Other Cabla Carriers) ===', '', ''])
+            data.append(['Typ-Name', 'Anzahl', 'Gesamtlänge (m)'])
 
             type_aggregates = aggregate_by_type_name(details['other_cable_carriers']['items'])
 
