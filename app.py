@@ -706,63 +706,82 @@ def execute_query_type(ifc_file, query_type, params):
         
         data = []
         
-        # Add parapet channels with individual details
+        # Helper function to aggregate items by type name
+        def aggregate_by_type_name(items):
+            """Group items by type_name and aggregate count and length"""
+            type_aggregates = {}
+            for item in items:
+                type_name = item['type_name'] if item['type_name'] else 'N/A'
+                if type_name not in type_aggregates:
+                    type_aggregates[type_name] = {
+                        'count': 0,
+                        'total_length': 0.0
+                    }
+                type_aggregates[type_name]['count'] += 1
+                if item['length'] is not None:
+                    type_aggregates[type_name]['total_length'] += item['length']
+            return type_aggregates
+        
+        # Add parapet channels grouped by type name
         if details['parapet_channels']['count'] > 0:
-            data.append(['=== Brüstungskanäle (Parapet Channels) ===', '', '', ''])
-            data.append(['ID', 'Name', 'Typ-Name', 'Länge (m)'])
+            data.append(['=== Brüstungskanäle (Parapet Channels) ===', '', ''])
+            data.append(['Typ-Name', 'Anzahl', 'Gesamtlänge (m)'])
             
-            for item in details['parapet_channels']['items']:
+            type_aggregates = aggregate_by_type_name(details['parapet_channels']['items'])
+            
+            # Sort by type name for consistent display
+            for type_name in sorted(type_aggregates.keys()):
+                agg = type_aggregates[type_name]
                 data.append([
-                    str(item['id']),
-                    item['name'] if item['name'] else 'N/A',
-                    item['type_name'] if item['type_name'] else 'N/A',
-                    f"{item['length']:.3f}" if item['length'] is not None else 'N/A'
+                    type_name,
+                    str(agg['count']),
+                    f"{agg['total_length']:.2f}" if agg['total_length'] > 0 else '0.00'
                 ])
             
             # Subtotal for parapet channels
             data.append([
                 'Zwischensumme',
                 f"{details['parapet_channels']['count']} Elemente",
-                '',
                 f"{round(details['parapet_channels']['total_length'], 2)} m"
             ])
-            data.append(['', '', '', ''])  # Empty row for spacing
+            data.append(['', '', ''])  # Empty row for spacing
         
-        # Add other cable carriers with individual details
+        # Add other cable carriers grouped by type name
         if details['other_cable_carriers']['count'] > 0:
-            data.append(['=== Andere Kabelträger (Other Cable Carriers) ===', '', '', ''])
-            data.append(['ID', 'Name', 'Typ-Name', 'Länge (m)'])
+            data.append(['=== Andere Kabelträger (Other Cable Carriers) ===', '', ''])
+            data.append(['Typ-Name', 'Anzahl', 'Gesamtlänge (m)'])
             
-            for item in details['other_cable_carriers']['items']:
+            type_aggregates = aggregate_by_type_name(details['other_cable_carriers']['items'])
+            
+            # Sort by type name for consistent display
+            for type_name in sorted(type_aggregates.keys()):
+                agg = type_aggregates[type_name]
                 data.append([
-                    str(item['id']),
-                    item['name'] if item['name'] else 'N/A',
-                    item['type_name'] if item['type_name'] else 'N/A',
-                    f"{item['length']:.3f}" if item['length'] is not None else 'N/A'
+                    type_name,
+                    str(agg['count']),
+                    f"{agg['total_length']:.2f}" if agg['total_length'] > 0 else '0.00'
                 ])
             
             # Subtotal for other carriers
             data.append([
                 'Zwischensumme',
                 f"{details['other_cable_carriers']['count']} Elemente",
-                '',
                 f"{round(details['other_cable_carriers']['total_length'], 2)} m"
             ])
-            data.append(['', '', '', ''])  # Empty row for spacing
+            data.append(['', '', ''])  # Empty row for spacing
         
         # Add total row
         if details['total_count'] > 0:
             data.append([
                 'GESAMT',
                 f"{details['total_count']} Elemente",
-                '',
                 f"{round(details['total_length'], 2)} m"
             ])
         
         return {
             'type': 'table',
-            'title': 'Kabelträgersegmente (IfcCableCarrierSegment) - Detailansicht',
-            'headers': ['ID / Kategorie', 'Name / Anzahl', 'Typ-Name', 'Länge (m)'],
+            'title': 'Kabelträgersegmente (IfcCableCarrierSegment) - Gruppiert nach Typ',
+            'headers': ['Typ-Name / Kategorie', 'Anzahl', 'Gesamtlänge (m)'],
             'data': data
         }
     
