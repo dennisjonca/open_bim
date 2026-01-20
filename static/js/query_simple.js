@@ -55,11 +55,20 @@ document.addEventListener('DOMContentLoaded', function() {
             select.remove(1);
         }
         
-        // Add available elements with German name / IFC name format
-        elements.forEach(elem => {
+        // Create array of {value, displayName} objects for sorting
+        const elementOptions = elements.map(elem => ({
+            value: elem,
+            displayName: getDisplayName(elem)
+        }));
+        
+        // Sort alphabetically by display name
+        elementOptions.sort((a, b) => a.displayName.localeCompare(b.displayName));
+        
+        // Add sorted elements to select
+        elementOptions.forEach(({ value, displayName }) => {
             const option = document.createElement('option');
-            option.value = elem;
-            option.textContent = getDisplayName(elem);
+            option.value = value;
+            option.textContent = displayName;
             select.appendChild(option);
         });
     }

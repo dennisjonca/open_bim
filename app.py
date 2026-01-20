@@ -708,15 +708,14 @@ def execute_query_type(ifc_file, query_type, params):
         
         # Add parapet channels with individual details
         if details['parapet_channels']['count'] > 0:
-            data.append(['=== Brüstungskanäle (Parapet Channels) ===', '', '', '', ''])
-            data.append(['ID', 'Name', 'Typ-Name', 'Höhe (m)', 'Länge (m)'])
+            data.append(['=== Brüstungskanäle (Parapet Channels) ===', '', '', ''])
+            data.append(['ID', 'Name', 'Typ-Name', 'Länge (m)'])
             
             for item in details['parapet_channels']['items']:
                 data.append([
                     str(item['id']),
                     item['name'] if item['name'] else 'N/A',
                     item['type_name'] if item['type_name'] else 'N/A',
-                    f"{item['height']:.3f}" if item['height'] is not None else 'N/A',
                     f"{item['length']:.3f}" if item['length'] is not None else 'N/A'
                 ])
             
@@ -725,22 +724,20 @@ def execute_query_type(ifc_file, query_type, params):
                 'Zwischensumme',
                 f"{details['parapet_channels']['count']} Elemente",
                 '',
-                '',
                 f"{round(details['parapet_channels']['total_length'], 2)} m"
             ])
-            data.append(['', '', '', '', ''])  # Empty row for spacing
+            data.append(['', '', '', ''])  # Empty row for spacing
         
         # Add other cable carriers with individual details
         if details['other_cable_carriers']['count'] > 0:
-            data.append(['=== Andere Kabelträger (Other Cable Carriers) ===', '', '', '', ''])
-            data.append(['ID', 'Name', 'Typ-Name', 'Höhe (m)', 'Länge (m)'])
+            data.append(['=== Andere Kabelträger (Other Cable Carriers) ===', '', '', ''])
+            data.append(['ID', 'Name', 'Typ-Name', 'Länge (m)'])
             
             for item in details['other_cable_carriers']['items']:
                 data.append([
                     str(item['id']),
                     item['name'] if item['name'] else 'N/A',
                     item['type_name'] if item['type_name'] else 'N/A',
-                    f"{item['height']:.3f}" if item['height'] is not None else 'N/A',
                     f"{item['length']:.3f}" if item['length'] is not None else 'N/A'
                 ])
             
@@ -749,10 +746,9 @@ def execute_query_type(ifc_file, query_type, params):
                 'Zwischensumme',
                 f"{details['other_cable_carriers']['count']} Elemente",
                 '',
-                '',
                 f"{round(details['other_cable_carriers']['total_length'], 2)} m"
             ])
-            data.append(['', '', '', '', ''])  # Empty row for spacing
+            data.append(['', '', '', ''])  # Empty row for spacing
         
         # Add total row
         if details['total_count'] > 0:
@@ -760,14 +756,13 @@ def execute_query_type(ifc_file, query_type, params):
                 'GESAMT',
                 f"{details['total_count']} Elemente",
                 '',
-                '',
                 f"{round(details['total_length'], 2)} m"
             ])
         
         return {
             'type': 'table',
             'title': 'Kabelträgersegmente (IfcCableCarrierSegment) - Detailansicht',
-            'headers': ['ID / Kategorie', 'Name / Anzahl', 'Typ-Name', 'Höhe (m)', 'Länge (m)'],
+            'headers': ['ID / Kategorie', 'Name / Anzahl', 'Typ-Name', 'Länge (m)'],
             'data': data
         }
     
