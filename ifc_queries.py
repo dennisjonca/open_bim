@@ -1021,3 +1021,107 @@ def get_cable_carrier_segments_detailed(ifc_file):
             result['total_length'] += length
 
     return result
+
+
+def _check_name_for_drinkable_water_keywords(name):
+    """
+    Check if a pipe name contains keywords indicating it's for drinkable water.
+    German terms: Edelstahlrohr (stainless steel pipe), Kupferrohr (copper pipe)
+    """
+    if not name:
+        return False
+    
+    name_lower = name.lower()
+    drinkable_keywords = [
+        'edelstahl',      # stainless steel
+        'kupfer',         # copper
+        'trinkwasser',    # drinking water
+        'potable',        # potable water (English)
+        'drinking',       # drinking water (English)
+    ]
+    
+    return any(keyword in name_lower for keyword in drinkable_keywords)
+
+
+def get_pipe_segments_detailed(ifc_file):
+    """
+    Get detailed information about all PipeSegments, categorized by whether
+    they are for drinkable water or other purposes (e.g., sewage).
+
+    Returns:
+        Dictionary with detailed categorization:
+        {
+            'drinkable_water_pipes': {
+                'count': int,
+                'total_length': float,
+                'items': [list of drinkable water pipe info dicts]
+            },
+            'other_pipes': {
+                'count': int,
+                'total_length': float,
+                'items': [list of other pipe info dicts]
+            },
+            'total_count': int,
+            'total_length': float
+        }
+    """
+    result = {
+        'drinkable_water_pipes': {
+            'count': 0,
+            'total_length': 0.0,
+            'items': []
+        },
+        'other_pipes': {
+            'count': 0,
+            'total_length': 0.0,
+            'items': []
+        },
+        'total_count': 0,
+        'total_length': 0.0
+    }
+
+    # Get all PipeSegments
+    pipe_segments = ifc_file.by_type('IfcPipeSegment')
+
+    for element in pipe_segments:
+        # Get element info
+        element_name = element.Name if hasattr(element, 'Name') and element.Name else None
+        if not element_name:
+            element_name = element.LongName if hasattr(element,
+                                                       'LongName') and element.LongName else f"Element #{element.id()}"
+
+        type_name = _get_element_type_name(element)
+        length = get_element_length(element)
+
+        # Check if it's for drinkable water based on name or type
+        is_drinkable_water = False
+        if _check_name_for_drinkable_water_keywords(element_name):
+            is_drinkable_water = True
+        if type_name and _check_name_for_drinkable_water_keywords(type_name):
+            is_drinkable_water = True
+
+        info = {
+            'id': element.id(),
+            'name': element_name,
+            'type_name': type_name,
+            'length': length
+        }
+
+        # Categorize
+        if is_drinkable_water:
+            result['drinkable_water_pipes']['items'].append(info)
+            result['drinkable_water_pipes']['count'] += 1
+            if length is not None:
+                result['drinkable_water_pipes']['total_length'] += length
+        else:
+            result['other_pipes']['items'].append(info)
+            result['other_pipes']['count'] += 1
+            if length is not None:
+                result['other_pipes']['total_length'] += length
+
+        # Update totals
+        result['total_count'] += 1
+        if length is not None:
+            result['total_length'] += length
+
+    return result

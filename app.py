@@ -787,6 +787,88 @@ def execute_query_type(ifc_file, query_type, params):
             'data': data
         }
 
+    elif query_type == 'pipe_segments_detailed':
+        details = ifc_queries.get_pipe_segments_detailed(ifc_file)
+
+        data = []
+
+        # Helper function to aggregate items by type name (reuse from cable carriers)
+        def aggregate_by_type_name(items):
+            """Group items by type_name and aggregate count and length"""
+            type_aggregates = {}
+            for item in items:
+                type_name = item['type_name'] if item['type_name'] else 'N/A'
+                if type_name not in type_aggregates:
+                    type_aggregates[type_name] = {
+                        'count': 0,
+                        'total_length': 0.0
+                    }
+                type_aggregates[type_name]['count'] += 1
+                if item['length'] is not None:
+                    type_aggregates[type_name]['total_length'] += item['length']
+            return type_aggregates
+
+        # Add drinkable water pipes grouped by type name
+        if details['drinkable_water_pipes']['count'] > 0:
+            data.append(['=== Trinkwasserleitungen (Edelstahl, Kupfer, etc.) ===', '', ''])
+
+            type_aggregates = aggregate_by_type_name(details['drinkable_water_pipes']['items'])
+
+            # Sort by type name for consistent display
+            for type_name in sorted(type_aggregates.keys()):
+                agg = type_aggregates[type_name]
+                data.append([
+                    type_name,
+                    str(agg['count']),
+                    f"{agg['total_length']:.2f}" if agg['total_length'] > 0 else '0.00'
+                ])
+
+            # Subtotal for drinkable water pipes
+            data.append([
+                'Zwischensumme',
+                f"{details['drinkable_water_pipes']['count']} Elemente",
+                f"{round(details['drinkable_water_pipes']['total_length'], 2)} m"
+            ])
+            data.append(['', '', ''])  # Empty row for spacing
+
+        # Add other pipes grouped by type name
+        if details['other_pipes']['count'] > 0:
+            data.append(['=== Andere Rohrleitungen (Abwasser, etc.) ===', '', ''])
+
+            type_aggregates = aggregate_by_type_name(details['other_pipes']['items'])
+
+            # Sort by type name for consistent display
+            for type_name in sorted(type_aggregates.keys()):
+                agg = type_aggregates[type_name]
+                data.append([
+                    type_name,
+                    str(agg['count']),
+                    f"{agg['total_length']:.2f}" if agg['total_length'] > 0 else '0.00'
+                ])
+
+            # Subtotal for other pipes
+            data.append([
+                'Zwischensumme',
+                f"{details['other_pipes']['count']} Elemente",
+                f"{round(details['other_pipes']['total_length'], 2)} m"
+            ])
+            data.append(['', '', ''])  # Empty row for spacing
+
+        # Add total row
+        if details['total_count'] > 0:
+            data.append([
+                'GESAMT',
+                f"{details['total_count']} Elemente",
+                f"{round(details['total_length'], 2)} m"
+            ])
+
+        return {
+            'type': 'table',
+            'title': 'Rohrsegmente (IfcPipeSegment) - Gruppiert nach Typ',
+            'headers': ['Typ-Name / Kategorie', 'Anzahl', 'Gesamtlänge (m)'],
+            'data': data
+        }
+
     else:
         return {'error': f'Unbekannter Abfragetyp: {query_type}'}
 
