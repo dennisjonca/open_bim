@@ -1087,8 +1087,10 @@ def get_pipe_segments_detailed(ifc_file):
         # Get element info
         element_name = element.Name if hasattr(element, 'Name') and element.Name else None
         if not element_name:
-            element_name = element.LongName if hasattr(element,
-                                                       'LongName') and element.LongName else f"Element #{element.id()}"
+            if hasattr(element, 'LongName') and element.LongName:
+                element_name = element.LongName
+            else:
+                element_name = f"Element #{element.id()}"
 
         type_name = _get_element_type_name(element)
         length = get_element_length(element)
