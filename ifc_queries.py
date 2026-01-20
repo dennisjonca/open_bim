@@ -615,12 +615,13 @@ def get_all_objects_by_storey(ifc_file):
 # Special Query Functions for Door Analysis and Parapet Channels
 # ============================================================================
 
-# Wall type constants (matching door_test.py)
-WALL_TYPE_GKB = 'GKB'
-WALL_TYPE_CONCRETE = 'Concrete'
-WALL_TYPE_BRICK = 'Brick'
-WALL_TYPE_WOOD = 'Wood'
-WALL_TYPE_UNKNOWN = 'Unknown'
+# Wall type constants (matching door_test.py) - German translations for web UI display
+# Note: door_test.py (CLI tool) maintains English constants for international use
+WALL_TYPE_GKB = 'GKB-Wand'
+WALL_TYPE_CONCRETE = 'Betonwand'
+WALL_TYPE_BRICK = 'Ziegelwand'
+WALL_TYPE_WOOD = 'Holzwand'
+WALL_TYPE_UNKNOWN = 'Unbekannt'
 
 # Keyword constants for wall type detection
 GKB_KEYWORDS = [
@@ -750,7 +751,7 @@ def count_doors_by_wall_type(ifc_file):
             wall_classification = _get_wall_type_classification(wall)
             wall_type_counts[wall_classification] += 1
         else:
-            wall_type_counts['No Wall Association'] += 1
+            wall_type_counts['Keine Wandzuordnung'] += 1
     
     return dict(wall_type_counts)
 
