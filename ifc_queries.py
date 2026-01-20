@@ -615,7 +615,8 @@ def get_all_objects_by_storey(ifc_file):
 # Special Query Functions for Door Analysis and Parapet Channels
 # ============================================================================
 
-# Wall type constants (matching door_test.py) - German translations
+# Wall type constants (matching door_test.py) - German translations for web UI display
+# Note: door_test.py (CLI tool) maintains English constants for international use
 WALL_TYPE_GKB = 'GKB-Wand'
 WALL_TYPE_CONCRETE = 'Betonwand'
 WALL_TYPE_BRICK = 'Ziegelwand'
