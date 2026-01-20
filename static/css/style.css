@@ -554,7 +554,7 @@ body {
 
 .result-unit {
     font-size: 1rem;
-    color: var(--text-primary);
+    color: var(--text-secondary);
     margin-left: 0.5rem;
 }
 
