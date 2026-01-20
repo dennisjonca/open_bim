@@ -8,19 +8,19 @@ document.addEventListener('DOMContentLoaded', function() {
     function getDisplayName(ifcName) {
         let germanName = ifcName;
         let ifcTechnicalName = ifcName;
-        
+
         // Get German name if available
         if (elementTranslations[ifcName]) {
             germanName = elementTranslations[ifcName];
         } else if (ifcName.startsWith('Ifc')) {
             germanName = ifcName.substring(3);
         }
-        
+
         // Get IFC technical name (without 'Ifc' prefix)
         if (ifcName.startsWith('Ifc')) {
             ifcTechnicalName = ifcName.substring(3);
         }
-        
+
         // Return format: "German name / IFC name"
         return `${germanName} / ${ifcTechnicalName}`;
     }
@@ -33,12 +33,12 @@ document.addEventListener('DOMContentLoaded', function() {
     availableElements.forEach(elem => {
         // Add all to countable
         countableElements.push(elem);
-        
+
         // Check if linear (pipes, ducts, cables)
         if (elem.includes('Segment') || elem.includes('Conduit')) {
             linearElements.push(elem);
         }
-        
+
         // Check if area (slabs, coverings)
         if (elem.includes('Slab') || elem.includes('Covering') || elem.includes('Roof')) {
             areaElements.push(elem);
@@ -49,21 +49,21 @@ document.addEventListener('DOMContentLoaded', function() {
     function populateSelect(selectId, elements) {
         const select = document.getElementById(selectId);
         if (!select) return;
-        
+
         // Clear existing options except first
         while (select.options.length > 1) {
             select.remove(1);
         }
-        
+
         // Create array of {value, displayName} objects for sorting
         const elementOptions = elements.map(elem => ({
             value: elem,
             displayName: getDisplayName(elem)
         }));
-        
+
         // Sort alphabetically by display name
         elementOptions.sort((a, b) => a.displayName.localeCompare(b.displayName));
-        
+
         // Add sorted elements to select
         elementOptions.forEach(({ value, displayName }) => {
             const option = document.createElement('option');
@@ -76,11 +76,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Populate all selects
     populateSelect('quantity_storey_select', countableElements);
     populateSelect('quantity_total_select', countableElements);
-    
+
     // Length selects
     populateSelect('length_storey_select', linearElements);
     populateSelect('length_total_select', linearElements);
-    
+
     // Area selects
     populateSelect('area_select', areaElements);
 
@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const firstCategoryPanel = document.querySelector('.category-panel[data-category="quantity"]');
             if (firstCategoryPanel) {
                 firstCategoryPanel.classList.add('active');
-                
+
                 // Show the special view panel
                 const categoryViewPanels = firstCategoryPanel.querySelectorAll('.view-panel');
                 categoryViewPanels.forEach(panel => {
@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // For storey view mode, use normal category switching
             // Hide all category panels
             categoryPanels.forEach(panel => panel.classList.remove('active'));
-            
+
             // Show the current category panel
             const activeCategory = document.querySelector(`.category-panel[data-category="${currentCategory}"]`);
             if (activeCategory) {
@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function executeQuery(form) {
     const queryType = form.dataset.query;
     const formData = new FormData(form);
-    
+
     // Build parameters object
     const params = {};
     for (let [key, value] of formData.entries()) {
@@ -231,7 +231,7 @@ function executeQuery(form) {
 function showLoading() {
     const resultsSection = document.getElementById('results');
     const resultsContent = document.getElementById('results-content');
-    
+
     resultsSection.style.display = 'block';
     resultsContent.innerHTML = `
         <div class="loading">
@@ -239,7 +239,7 @@ function showLoading() {
             <p>Abfrage wird ausgeführt...</p>
         </div>
     `;
-    
+
     // Scroll to results
     resultsSection.scrollIntoView({ behavior: 'smooth' });
 }
@@ -255,7 +255,7 @@ function showError(message) {
 
 function displayResults(data) {
     const resultsContent = document.getElementById('results-content');
-    
+
     if (data.type === 'value') {
         resultsContent.innerHTML = createValueResult(data);
     } else if (data.type === 'table') {
@@ -328,7 +328,7 @@ function createTableResult(data) {
 
 function createComplianceResult(data) {
     const statusClass = data.passed ? 'passed' : 'failed';
-    
+
     let detailsHTML = '';
     if (data.details && data.details.length > 0) {
         detailsHTML = '<ul class="compliance-details">';
